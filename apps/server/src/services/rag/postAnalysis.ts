@@ -2,7 +2,7 @@ import prisma from '../../prismaClient.js';
 import { logger } from '../../logger.js';
 import { indexModuleForRag } from './indexing.js';
 import { getModuleSourceCode } from '../../sourceCode.js';
-import { generateAllModuleExplanations, generateAllPackageExplanations } from './explanations.js';
+import { generateAllModuleExplanations, generateAllPackageExplanations, generateGlobalAnalysisSummary } from './explanations.js';
 import type { Network } from '../../sui.js';
 import type { GraphData } from '@suilens/core';
 
@@ -228,7 +228,21 @@ export async function processAnalysisForRag(
     );
     
     logger.info('post-analysis', `✅ Package explanations complete`, packageExplainResults);
-
+    
+    // 5. Generate global analysis summary (after all package explanations are done)
+    await onProgress?.(total * 2 + packageAddresses.length, total * 2 + packageAddresses.length, 'Generating global summary...');
+    logger.info('post-analysis', `Starting global analysis summary generation`);
+    
+    try {
+      await generateGlobalAnalysisSummary(analysisId, { force: false });
+      logger.info('post-analysis', `✅ Global summary generated`);
+    } catch (summaryError: any) {
+      logger.warn('post-analysis', `Failed to generate global summary`, {
+        error: summaryError.message,
+      });
+      // Don't fail the whole process if global summary fails
+    }
+    
     logger.info('post-analysis', `✅ Full RAG processing complete`, {
       sourceIndexing: { indexed, alreadyEmbedded, failed },
       moduleExplanations: moduleExplainResults,

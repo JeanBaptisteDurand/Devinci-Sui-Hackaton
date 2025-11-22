@@ -25,6 +25,7 @@ interface AiInterfaceDrawerProps {
   dependencies?: Dependency[];
   packageId?: string;
   network?: string;
+  analysisId?: string;
 }
 
 type Section = 'summary' | 'package' | 'modules' | 'dependencies';
@@ -119,7 +120,7 @@ const MarkdownComponents = {
   td: ({node, ...props}: any) => <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-current opacity-90" {...props} />,
 };
 
-export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], dependencies = [], packageId, network = 'mainnet' }: AiInterfaceDrawerProps) {
+export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], dependencies = [], packageId, network = 'mainnet', analysisId }: AiInterfaceDrawerProps) {
   const [currentSection, setCurrentSection] = useState<Section>('summary');
   const [showSubNav, setShowSubNav] = useState(false);
   const [selectedDependency, setSelectedDependency] = useState<Dependency | null>(null);
@@ -132,6 +133,8 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
   });
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const summaryLoadRef = useRef<boolean>(false); // Track if summary is being loaded
   
   // Resizing state
   const [width, setWidth] = useState(800); // Default width in pixels
@@ -241,6 +244,93 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
       }));
     }, 1000);
   };
+
+  // Fetch global summary when drawer opens or when entering summary section
+  useEffect(() => {
+    // Debounce to prevent multiple requests
+    const timeoutId = setTimeout(() => {
+      const loadGlobalSummary = async () => {
+        // Only load if summary section is active, analysisId exists, not already loading, and summary not already loaded
+        if (currentSection === 'summary' && analysisId && !loadingSummary && !summaryLoadRef.current) {
+          // Check if summary is already in messages
+          const hasSummary = messages.summary.some(m => 
+            m.id.startsWith('summary-') && !m.id.startsWith('init-')
+          );
+          
+          if (hasSummary) {
+            return; // Already loaded
+          }
+
+          summaryLoadRef.current = true;
+          setLoadingSummary(true);
+
+          try {
+            const response = await fetch(`/api/analysis/${analysisId}/global-summary`);
+            
+            if (!response.ok) {
+              if (response.status === 404) {
+                // Summary not generated yet (will be generated during analysis)
+                setMessages(prev => ({
+                  ...prev,
+                  summary: [{
+                    id: `init-summary`,
+                    role: 'ai',
+                    content: 'Global summary is being generated. Please wait a moment and refresh.'
+                  }]
+                }));
+                return;
+              }
+              throw new Error('Failed to fetch global summary');
+            }
+            
+            const data = await response.json();
+            if (data.summary) {
+              setMessages(prev => {
+                const currentMessages = prev.summary;
+                // Check if we already have the summary to avoid duplicates
+                if (currentMessages.some(m => m.content === data.summary)) {
+                  return prev;
+                }
+
+                // Replace initial message with actual summary
+                return {
+                  ...prev,
+                  summary: [{
+                    id: `summary-${Date.now()}`,
+                    role: 'ai',
+                    content: data.summary
+                  }]
+                };
+              });
+            }
+          } catch (error) {
+            console.error('Failed to load global summary:', error);
+            // Show error message only if we don't have a summary already
+            setMessages(prev => {
+              if (prev.summary.length === 1 && prev.summary[0].id.startsWith('init-')) {
+                return {
+                  ...prev,
+                  summary: [{
+                    id: `error-${Date.now()}`,
+                    role: 'ai',
+                    content: 'Global summary is not available yet. It will be generated automatically after the analysis completes.'
+                  }]
+                };
+              }
+              return prev;
+            });
+          } finally {
+            setLoadingSummary(false);
+            summaryLoadRef.current = false;
+          }
+        }
+      };
+
+      loadGlobalSummary();
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [currentSection, analysisId, loadingSummary, messages.summary]);
 
   // Fetch package explanation when entering package section
   useEffect(() => {
@@ -429,6 +519,13 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50">
+              {loadingSummary && currentSection === 'summary' && (
+                <div className="flex justify-start">
+                  <div className="bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-none px-5 py-3 shadow-sm">
+                    <p className="text-sm text-gray-500">Loading global summary...</p>
+                  </div>
+                </div>
+              )}
               {messages[currentSection].map((msg) => (
                 <div 
                   key={msg.id} 

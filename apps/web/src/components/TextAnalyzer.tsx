@@ -41,7 +41,9 @@ export function TextAnalyzer() {
         }
 
         if (data.status === 'failed' || data.status === 'error') {
-          throw new Error(data.failedReason || 'Analysis job failed');
+          // Use error field from job status (which contains failedReason)
+          const errorMessage = data.error || data.failedReason || 'Analysis job failed';
+          throw new Error(errorMessage);
         }
 
         // Wait 1 second before next poll
@@ -138,9 +140,10 @@ export function TextAnalyzer() {
       setPackageId(''); // Clear after successful analysis
     } catch (error: any) {
       console.error('Analysis error:', error);
+      const errorMessage = error.message || 'Failed to analyze package';
       toast({
-        title: 'Analysis Failed',
-        description: error.message || 'Failed to analyze package',
+        title: errorMessage.includes('Invalid address') ? 'Invalid Address' : 'Analysis Failed',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

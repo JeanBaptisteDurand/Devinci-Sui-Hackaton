@@ -39,6 +39,7 @@ model Analysis {
   events    Event[]
   flags     Flag[]
   typeStats TypeStats[]
+  globalSummary GlobalAnalysisSummary?
 
   @@index([packageId])
   @@index([createdAt(sort: Desc)])
@@ -241,4 +242,19 @@ model RagMessage {
 
   @@index([chatId])
   @@index([createdAt])
+}
+
+// Global Analysis Summary - Business-focused overview of entire analysis
+model GlobalAnalysisSummary {
+  id              String   @id @default(cuid())
+  analysisId      String   @unique
+  analysis        Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  primaryPackageId String  // Package address for which this summary was generated
+  summary         String   @db.Text // Plain text summary (no vector storage)
+  ciphertext      String?  @db.Text // Encrypted version for future use
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([analysisId])
+  @@index([primaryPackageId])
 }

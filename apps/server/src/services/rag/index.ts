@@ -10,7 +10,8 @@ export {
   generateModuleExplanation, 
   generatePackageExplanation,
   generateAllModuleExplanations,
-  generateAllPackageExplanations
+  generateAllPackageExplanations,
+  generateGlobalAnalysisSummary
 } from './explanations.js';
 export { processAnalysisForRag, processAnalysisForRagBackground } from './postAnalysis.js';
 export type { RagChatParams, RagChatResult } from './chat.js';

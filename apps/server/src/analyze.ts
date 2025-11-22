@@ -56,6 +56,16 @@ function isCriticalType(typeFqn: string, configCriticalTypes?: string[]): boolea
 }
 
 /**
+ * Custom error class for invalid addresses
+ */
+export class InvalidAddressError extends Error {
+  constructor(message: string = 'Invalid address') {
+    super(message);
+    this.name = 'InvalidAddressError';
+  }
+}
+
+/**
  * Helper to detect which network the package exists on
  * Tries mainnet first, then falls back to testnet
  */
@@ -75,13 +85,19 @@ async function detectPackageNetwork(packageId: string, preferredNetwork?: Networ
       logger.debug('detectPackageNetwork', `Package not found on ${network}`, { error: error.message });
       // If preferred network was specified and failed, don't fallback
       if (preferredNetwork) {
+        // Check if this is an invalid address error
+        const errorMsg = error.message || '';
+        if (errorMsg.includes('not found') || errorMsg.includes('Invalid') || errorMsg.includes('does not exist')) {
+          throw new InvalidAddressError('Invalid address');
+        }
         throw error;
       }
       // Continue to next network
     }
   }
 
-  throw new Error(`Package ${packageId} not found on any network (tried: ${networksToTry.join(', ')})`);
+  // Package not found on any network - this is an invalid address
+  throw new InvalidAddressError('Invalid address');
 }
 
 /**
@@ -100,8 +116,22 @@ export async function analyzePackage(
 
   // Detect which network the package is on (mainnet first, then testnet)
   logger.info('analyzePackageV2', 'Detecting package network...', { packageId, preferredNetwork });
-  const detectedNetwork = await detectPackageNetwork(packageId, preferredNetwork);
-  logger.info('analyzePackageV2', `Using network: ${detectedNetwork}`, { packageId });
+  let detectedNetwork: Network;
+  try {
+    detectedNetwork = await detectPackageNetwork(packageId, preferredNetwork);
+    logger.info('analyzePackageV2', `Using network: ${detectedNetwork}`, { packageId });
+  } catch (error: any) {
+    // Re-throw InvalidAddressError as-is
+    if (error instanceof InvalidAddressError || error.name === 'InvalidAddressError') {
+      throw error;
+    }
+    // Check if error is about package not found
+    const errorMsg = error.message || '';
+    if (errorMsg.includes('not found') || errorMsg.includes('Invalid') || errorMsg.includes('does not exist')) {
+      throw new InvalidAddressError('Invalid address');
+    }
+    throw error;
+  }
 
   // Update config with detected network
   const configWithNetwork = { ...config, network: detectedNetwork };
@@ -549,6 +579,18 @@ async function analyzeSinglePackageInternal(
       stack: error.stack,
       packageId,
     });
+    
+    // Preserve InvalidAddressError messages
+    if (error instanceof InvalidAddressError || error.name === 'InvalidAddressError') {
+      throw error;
+    }
+    
+    // Check if error is about package not found (invalid address)
+    const errorMsg = error.message || '';
+    if (errorMsg.includes('not found') || errorMsg.includes('Invalid') || errorMsg.includes('does not exist')) {
+      throw new InvalidAddressError('Invalid address');
+    }
+    
     throw new Error(`Failed to analyze package: ${error.message}`);
   }
 }

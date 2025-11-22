@@ -45,6 +45,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, network
     type: 'module' | 'package';
     id: string;
     name: string;
+    hasModules?: boolean;
   } | null>(null);
 
   // Handle edge panel
@@ -182,6 +183,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, network
                     type: 'package',
                     id: nodeData.address,
                     name: nodeData.address,
+                    hasModules: packageModules.length > 0,
                   })}
                   className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm font-medium rounded-lg transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
@@ -525,6 +527,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, network
           type={explanationModalConfig.type}
           id={explanationModalConfig.id}
           name={explanationModalConfig.name}
+          hasModules={explanationModalConfig.hasModules}
           onClose={() => setExplanationModalConfig(null)}
         />
       )}

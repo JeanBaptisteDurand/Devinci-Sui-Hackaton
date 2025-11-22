@@ -19,30 +19,15 @@ export function useAuth() {
     isLoading: false,
   });
 
-  // Synchronize JWT with wallet connection
-  // If wallet disconnects, invalidate JWT
-  // If wallet address changes, invalidate old JWT
+  // Only invalidate JWT if wallet address changes (for security)
+  // JWT persists independently of wallet connection state
   useEffect(() => {
-    const storedToken = localStorage.getItem('auth_token');
     const storedUserStr = localStorage.getItem('auth_user');
     const storedUser = storedUserStr ? JSON.parse(storedUserStr) : null;
     
-    // If wallet is disconnected, clear auth
-    if (!account?.address) {
-      if (storedToken) {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_user');
-        setAuthState({
-          token: null,
-          user: null,
-          isLoading: false,
-        });
-      }
-      return;
-    }
-
-    // If wallet address changed, invalidate old token
-    if (storedUser && storedUser.walletAddress !== account.address) {
+    // Only clear token if wallet address changed (user switched wallets)
+    // Don't clear token when wallet disconnects - JWT can live longer
+    if (account?.address && storedUser && storedUser.walletAddress !== account.address) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
       setAuthState({

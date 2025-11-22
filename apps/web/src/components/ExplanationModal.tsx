@@ -7,6 +7,7 @@ interface ExplanationModalProps {
   id: string;
   name: string;
   onClose: () => void;
+  hasModules?: boolean; // For packages: true if package has modules, false if it's depth level 3
 }
 
 const MarkdownComponents = {
@@ -35,15 +36,20 @@ const MarkdownComponents = {
   td: ({node, ...props}: any) => <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-current opacity-90" {...props} />,
 };
 
-export default function ExplanationModal({ type, id, name, onClose }: ExplanationModalProps) {
+export default function ExplanationModal({ type, id, name, onClose, hasModules }: ExplanationModalProps) {
   const [explanation, setExplanation] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
+    // Skip fetching if it's a package with no modules (depth level 3)
+    if (type === 'package' && hasModules === false) {
+      setLoading(false);
+      return;
+    }
     fetchExplanation();
-  }, [type, id]);
+  }, [type, id, hasModules]);
 
   const fetchExplanation = async () => {
     setLoading(true);
@@ -124,7 +130,14 @@ export default function ExplanationModal({ type, id, name, onClose }: Explanatio
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {loading ? (
+          {type === 'package' && hasModules === false ? (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">📦</div>
+              <p className="text-gray-600 text-lg font-medium">
+                Not analyzed, dependency of a dependency.
+              </p>
+            </div>
+          ) : loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
