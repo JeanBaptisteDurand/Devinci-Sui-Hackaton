@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Send, MessageSquare, Package, Box, Link as LinkIcon, GripVertical, ArrowLeft, ExternalLink } from 'lucide-react';
-import { suiscanPackageUrl, suivisionPackageUrl } from '../utils/explorers';
+import { suiscanPackageUrl, suivisionPackageUrl, suiscanModuleUrl, suivisionModuleUrl } from '../utils/explorers';
+import TypeModal from './TypeModal';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -16,6 +17,13 @@ export interface ModuleInfo {
   name: string;
   id: string;
   types?: string[];
+  flags?: string[];
+  functions?: Array<{
+    name: string;
+    visibility: string;
+    isEntry?: boolean;
+  }>;
+  packageId?: string;
 }
 
 interface AiInterfaceDrawerProps {
@@ -125,6 +133,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
   const [showSubNav, setShowSubNav] = useState(false);
   const [selectedDependency, setSelectedDependency] = useState<Dependency | null>(null);
   const [selectedModule, setSelectedModule] = useState<ModuleInfo | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [messages, setMessages] = useState<Record<Section, Message[]>>({
     summary: [],
     package: [],
@@ -438,6 +447,20 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
       [currentSection]: [...prev[currentSection], userMessage]
     }));
 
+    if (!dep.modules || dep.modules.length === 0) {
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: "Not analyzed, dependency of a dependency."
+      };
+
+      setMessages(prev => ({
+        ...prev,
+        [currentSection]: [...prev[currentSection], aiMessage]
+      }));
+      return;
+    }
+
     try {
       const response = await fetch(`/api/packages/${dep.id}`);
       if (!response.ok) throw new Error('Failed to fetch');
@@ -620,23 +643,101 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   </button>
                 ))
               ) : selectedModule ? (
-                <div className="space-y-2">
-                  <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Types
-                  </div>
-                  {selectedModule.types && selectedModule.types.length > 0 ? (
-                    selectedModule.types.map((type) => (
-                      <div 
-                        key={type}
-                        className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 text-purple-900 bg-purple-50"
-                      >
-                        <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
-                        <span className="text-sm truncate" title={type}>{type}</span>
+                <div className="space-y-4">
+                  {/* View Code */}
+                  {selectedModule.packageId && (
+                    <div>
+                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        View Code
                       </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-3 text-sm text-gray-500 italic">
-                      No types found in this module
+                      <div className="space-y-2">
+                        <a
+                          href={suiscanModuleUrl(selectedModule.packageId, selectedModule.name, network as any)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-blue-600 bg-blue-50 hover:bg-blue-100"
+                        >
+                          <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm">View on SuiScan</span>
+                        </a>
+                        <a
+                          href={suivisionModuleUrl(selectedModule.packageId, selectedModule.name, network as any)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-green-600 bg-green-50 hover:bg-green-100"
+                        >
+                          <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm">View on SuiVision</span>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Security Flags */}
+                  {selectedModule.flags && selectedModule.flags.length > 0 && (
+                    <div>
+                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Security Flags
+                      </div>
+                      <div className="space-y-1">
+                        {selectedModule.flags.map((flag, idx) => (
+                          <div key={idx} className="text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200 flex items-center gap-2">
+                            <span>⚠️</span>
+                            {flag}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Types */}
+                  <div>
+                    <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Types
+                    </div>
+                    {selectedModule.types && selectedModule.types.length > 0 ? (
+                      <div className="space-y-1">
+                        {selectedModule.types.map((type) => (
+                          <button 
+                            key={type}
+                            onClick={() => setSelectedType(type)}
+                            className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 text-purple-900 bg-purple-50 hover:bg-purple-100 transition-colors"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                            <span className="text-sm truncate" title={type}>{type.split('::').pop()}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500 italic">
+                        No types found in this module
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Functions */}
+                  {selectedModule.functions && selectedModule.functions.length > 0 && (
+                    <div>
+                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Functions ({selectedModule.functions.length})
+                      </div>
+                      <div className="space-y-1">
+                        {selectedModule.functions.map((func, idx) => (
+                          <div key={idx} className="w-full text-left px-4 py-2 rounded-lg bg-gray-100 border border-gray-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-mono font-semibold text-gray-800">{func.name}</span>
+                              {func.isEntry && (
+                                <span className="text-[10px] uppercase bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">
+                                  Entry
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500 capitalize">
+                              {func.visibility.toLowerCase()}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -712,6 +813,13 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
           </div>
 
         </div>
+      {selectedType && analysisId && (
+        <TypeModal
+          typeFqn={selectedType}
+          analysisId={analysisId}
+          onClose={() => setSelectedType(null)}
+        />
+      )}
     </div>
   );
 }

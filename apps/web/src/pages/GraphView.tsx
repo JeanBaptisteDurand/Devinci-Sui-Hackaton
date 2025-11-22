@@ -444,7 +444,10 @@ export default function GraphView() {
           .map((m: any) => ({ 
             name: m.name, 
             id: m.id,
-            types: m.typesDefined?.map((t: string) => t.split('::').pop()) || []
+            types: m.typesDefined || [],
+            flags: m.flags || [],
+            functions: m.functions || [],
+            packageId: m.package
           })) || []}
         dependencies={graphData?.packages
           ?.filter((p: any) => p.id !== primaryPackageId)
@@ -456,7 +459,10 @@ export default function GraphView() {
               .map((m: any) => ({ 
                 name: m.name, 
                 id: m.id,
-                types: m.typesDefined?.map((t: string) => t.split('::').pop()) || []
+                types: m.typesDefined || [],
+                flags: m.flags || [],
+                functions: m.functions || [],
+                packageId: m.package
               })) || []
           })) || []}
       />
