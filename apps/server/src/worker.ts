@@ -1,6 +1,6 @@
 import { Worker, Job } from 'bullmq';
 import Redis from 'ioredis';
-import { analyzePackage } from './analyze.js';
+import { analyzePackage, InvalidAddressError } from './analyze.js';
 import { AnalysisJobData } from './queue.js';
 import { logger } from './logger.js';
 import { processAnalysisForRag } from './services/rag/index.js';
@@ -61,6 +61,18 @@ export const analysisWorker = new Worker(
       return analysisId;
     } catch (error: any) {
       logger.error('worker', `Job ${job.id} failed`, { error: error.message, stack: error.stack });
+      
+      // Preserve InvalidAddressError messages
+      if (error instanceof InvalidAddressError || error.name === 'InvalidAddressError') {
+        throw error;
+      }
+      
+      // Check if error is about invalid address
+      const errorMsg = error.message || '';
+      if (errorMsg.includes('Invalid address') || errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
+        throw new InvalidAddressError('Invalid address');
+      }
+      
       throw error;
     }
   },
