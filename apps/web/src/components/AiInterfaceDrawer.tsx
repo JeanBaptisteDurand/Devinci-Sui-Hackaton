@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Send, MessageSquare, Package, Box, Link as LinkIcon, GripVertical, ArrowLeft, ExternalLink } from 'lucide-react';
 import { suiscanPackageUrl, suivisionPackageUrl } from '../utils/explorers';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 // Removed unused Button import
 
 export interface Dependency {
@@ -53,6 +56,67 @@ const SECTIONS: Record<Section, { title: string; icon: React.ElementType; initia
     icon: LinkIcon,
     initialMessage: 'Analysis of external dependencies. Lorem ipsum dolor sit amet. The project relies on several key external packages for utility functions.'
   }
+};
+
+const SECTION_STYLES: Record<Section, { active: string; inactive: string; iconColor: string; chatBubble: string; button: string; ring: string }> = {
+  summary: {
+    active: 'bg-gray-100 text-gray-900 ring-1 ring-gray-200',
+    inactive: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+    iconColor: 'text-gray-500',
+    chatBubble: 'bg-gray-600 text-white',
+    button: 'bg-gray-600 hover:bg-gray-700',
+    ring: 'focus:ring-gray-500'
+  },
+  package: {
+    active: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200',
+    inactive: 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-700',
+    iconColor: 'text-yellow-600',
+    chatBubble: 'bg-yellow-600 text-white',
+    button: 'bg-yellow-600 hover:bg-yellow-700',
+    ring: 'focus:ring-yellow-500'
+  },
+  modules: {
+    active: 'bg-green-50 text-green-700 ring-1 ring-green-200',
+    inactive: 'text-gray-600 hover:bg-green-50 hover:text-green-700',
+    iconColor: 'text-green-600',
+    chatBubble: 'bg-green-600 text-white',
+    button: 'bg-green-600 hover:bg-green-700',
+    ring: 'focus:ring-green-500'
+  },
+  dependencies: {
+    active: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+    inactive: 'text-gray-600 hover:bg-blue-50 hover:text-blue-700',
+    iconColor: 'text-blue-600',
+    chatBubble: 'bg-blue-600 text-white',
+    button: 'bg-blue-600 hover:bg-blue-700',
+    ring: 'focus:ring-blue-500'
+  }
+};
+
+const MarkdownComponents = {
+  p: ({node, ...props}: any) => <p className="text-sm leading-relaxed break-words mb-2 last:mb-0" {...props} />,
+  a: ({node, ...props}: any) => <a className="underline hover:no-underline break-all" target="_blank" rel="noopener noreferrer" {...props} />,
+  ul: ({node, ...props}: any) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+  ol: ({node, ...props}: any) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+  li: ({node, ...props}: any) => <li className="text-sm" {...props} />,
+  h1: ({node, ...props}: any) => <h1 className="text-lg font-bold mb-2 mt-4 first:mt-0" {...props} />,
+  h2: ({node, ...props}: any) => <h2 className="text-base font-bold mb-2 mt-3 first:mt-0" {...props} />,
+  h3: ({node, ...props}: any) => <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0" {...props} />,
+  code: ({node, inline, className, children, ...props}: any) => {
+    return inline ? (
+      <code className="bg-black/10 px-1 py-0.5 rounded text-xs font-mono break-all" {...props}>
+        {children}
+      </code>
+    ) : (
+      <pre className="bg-black/10 p-2 rounded-lg overflow-x-auto text-xs font-mono mb-2">
+        <code {...props}>{children}</code>
+      </pre>
+    );
+  },
+  blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-current pl-4 italic my-2 opacity-80" {...props} />,
+  table: ({node, ...props}: any) => <div className="overflow-x-auto mb-2"><table className="min-w-full divide-y divide-current border-current border opacity-80" {...props} /></div>,
+  th: ({node, ...props}: any) => <th className="px-3 py-2 bg-black/5 text-left text-xs font-medium uppercase tracking-wider border-b border-current opacity-70" {...props} />,
+  td: ({node, ...props}: any) => <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-current opacity-90" {...props} />,
 };
 
 export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], dependencies = [], packageId, network = 'mainnet' }: AiInterfaceDrawerProps) {
@@ -270,6 +334,48 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
     }
   };
 
+  const handleDependencyClick = async (dep: Dependency) => {
+    setSelectedDependency(dep);
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: `Explain the dependency package ${dep.name}`
+    };
+    
+    setMessages(prev => ({
+      ...prev,
+      [currentSection]: [...prev[currentSection], userMessage]
+    }));
+
+    try {
+      const response = await fetch(`/api/packages/${dep.id}`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      
+      const data = await response.json();
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: data.explanation || "I don't have an explanation for this package yet."
+      };
+
+      setMessages(prev => ({
+        ...prev,
+        [currentSection]: [...prev[currentSection], aiMessage]
+      }));
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: "Sorry, I encountered an error while fetching the package explanation."
+      };
+      setMessages(prev => ({
+        ...prev,
+        [currentSection]: [...prev[currentSection], errorMessage]
+      }));
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -316,7 +422,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
           {/* Chat Area */}
           <div className="flex-1 flex flex-col bg-white">
             <div className="h-14 border-b border-gray-100 flex items-center px-6">
-              <h3 className="font-semibold text-lg text-blue-600 flex items-center gap-2">
+              <h3 className={`font-semibold text-lg flex items-center gap-2 ${SECTION_STYLES[currentSection].iconColor}`}>
                 {React.createElement(SECTIONS[currentSection].icon, { className: "w-5 h-5" })}
                 {SECTIONS[currentSection].title}
               </h3>
@@ -331,11 +437,20 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   <div 
                     className={`max-w-[80%] rounded-2xl px-5 py-3 shadow-sm ${
                       msg.role === 'user' 
-                        ? 'bg-blue-600 text-white rounded-br-none' 
+                        ? `${SECTION_STYLES[currentSection].chatBubble} rounded-br-none` 
                         : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
                     }`}
                   >
-                    <p className="text-sm leading-relaxed">{msg.content}</p>
+                    {msg.role === 'ai' ? (
+                      <ReactMarkdown 
+                        components={MarkdownComponents}
+                        remarkPlugins={[remarkGfm]}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <p className="text-sm leading-relaxed break-words">{msg.content}</p>
+                    )}
                   </div>
                 </div>
               ))}
@@ -349,12 +464,12 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   placeholder="Ask something about this section..."
-                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                  className={`flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all ${SECTION_STYLES[currentSection].ring}`}
                 />
                 <button 
                   type="submit"
                   disabled={!inputValue.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium"
+                  className={`px-4 py-2 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium ${SECTION_STYLES[currentSection].button}`}
                 >
                   <Send className="w-4 h-4" />
                   Send
@@ -397,11 +512,13 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     }}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all ${
                       currentSection === section
-                        ? 'bg-blue-100 text-blue-700 font-medium shadow-sm ring-1 ring-blue-200'
-                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                        ? SECTION_STYLES[section].active
+                        : SECTION_STYLES[section].inactive
                     }`}
                   >
-                    {React.createElement(SECTIONS[section].icon, { className: "w-4 h-4" })}
+                    {React.createElement(SECTIONS[section].icon, { 
+                      className: `w-4 h-4 ${currentSection === section ? '' : SECTION_STYLES[section].iconColor}` 
+                    })}
                     <span className="text-sm">{section === 'summary' ? 'Global Summary' : SECTIONS[section].title}</span>
                   </button>
                 ))
@@ -414,9 +531,9 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     selectedModule.types.map((type) => (
                       <div 
                         key={type}
-                        className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 text-gray-600 bg-gray-100"
+                        className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 text-purple-900 bg-purple-50"
                       >
-                        <div className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
+                        <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
                         <span className="text-sm truncate" title={type}>{type}</span>
                       </div>
                     ))
@@ -432,9 +549,9 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     <button
                       key={module.id}
                       onClick={() => handleModuleClick(module)}
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-green-50 hover:text-green-700"
                     >
-                      <Box className="w-4 h-4 flex-shrink-0" />
+                      <Box className="w-4 h-4 flex-shrink-0 text-green-600" />
                       <span className="text-sm truncate" title={module.name}>{module.name}</span>
                     </button>
                   ))
@@ -444,18 +561,18 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                       href={suiscanPackageUrl(packageId, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-yellow-50 hover:text-yellow-700"
                     >
-                      <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                      <ExternalLink className="w-4 h-4 flex-shrink-0 text-yellow-600" />
                       <span className="text-sm">View on SuiScan</span>
                     </a>
                     <a
                       href={suivisionPackageUrl(packageId, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-yellow-50 hover:text-yellow-700"
                     >
-                      <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                      <ExternalLink className="w-4 h-4 flex-shrink-0 text-yellow-600" />
                       <span className="text-sm">View on SuiVision</span>
                     </a>
                   </div>
@@ -465,9 +582,9 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                       <button
                         key={module.id}
                         onClick={() => handleModuleClick(module)}
-                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-green-50 hover:text-green-700"
                       >
-                        <Box className="w-4 h-4 flex-shrink-0" />
+                        <Box className="w-4 h-4 flex-shrink-0 text-green-600" />
                         <span className="text-sm truncate" title={module.name}>{module.name}</span>
                       </button>
                     ))
@@ -475,10 +592,10 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     dependencies.map((dep) => (
                       <button
                         key={dep.id}
-                        onClick={() => setSelectedDependency(dep)}
-                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                        onClick={() => handleDependencyClick(dep)}
+                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-700"
                       >
-                        <LinkIcon className="w-4 h-4 flex-shrink-0" />
+                        <LinkIcon className="w-4 h-4 flex-shrink-0 text-blue-600" />
                         <span className="text-sm truncate" title={dep.name}>{dep.name}</span>
                       </button>
                     ))

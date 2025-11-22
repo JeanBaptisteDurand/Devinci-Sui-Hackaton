@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface ExplanationModalProps {
   type: 'module' | 'package';
@@ -6,6 +8,32 @@ interface ExplanationModalProps {
   name: string;
   onClose: () => void;
 }
+
+const MarkdownComponents = {
+  p: ({node, ...props}: any) => <p className="text-sm leading-relaxed break-words mb-2 last:mb-0" {...props} />,
+  a: ({node, ...props}: any) => <a className="underline hover:no-underline break-all" target="_blank" rel="noopener noreferrer" {...props} />,
+  ul: ({node, ...props}: any) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+  ol: ({node, ...props}: any) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+  li: ({node, ...props}: any) => <li className="text-sm" {...props} />,
+  h1: ({node, ...props}: any) => <h1 className="text-lg font-bold mb-2 mt-4 first:mt-0" {...props} />,
+  h2: ({node, ...props}: any) => <h2 className="text-base font-bold mb-2 mt-3 first:mt-0" {...props} />,
+  h3: ({node, ...props}: any) => <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0" {...props} />,
+  code: ({node, inline, className, children, ...props}: any) => {
+    return inline ? (
+      <code className="bg-black/10 px-1 py-0.5 rounded text-xs font-mono break-all" {...props}>
+        {children}
+      </code>
+    ) : (
+      <pre className="bg-black/10 p-2 rounded-lg overflow-x-auto text-xs font-mono mb-2">
+        <code {...props}>{children}</code>
+      </pre>
+    );
+  },
+  blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-current pl-4 italic my-2 opacity-80" {...props} />,
+  table: ({node, ...props}: any) => <div className="overflow-x-auto mb-2"><table className="min-w-full divide-y divide-current border-current border opacity-80" {...props} /></div>,
+  th: ({node, ...props}: any) => <th className="px-3 py-2 bg-black/5 text-left text-xs font-medium uppercase tracking-wider border-b border-current opacity-70" {...props} />,
+  td: ({node, ...props}: any) => <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-current opacity-90" {...props} />,
+};
 
 export default function ExplanationModal({ type, id, name, onClose }: ExplanationModalProps) {
   const [explanation, setExplanation] = useState<string | null>(null);
@@ -112,7 +140,9 @@ export default function ExplanationModal({ type, id, name, onClose }: Explanatio
             <div className="prose prose-sm max-w-none">
               <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
                 <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                  {explanation}
+                  <ReactMarkdown components={MarkdownComponents} remarkPlugins={[remarkGfm]}>
+                    {explanation}
+                  </ReactMarkdown>
                 </div>
               </div>
             </div>
