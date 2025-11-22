@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Send, MessageSquare, Package, Box, Link as LinkIcon, GripVertical, ArrowLeft, ExternalLink } from 'lucide-react';
-import { suiscanPackageUrl, suiexplorerPackageUrl } from '../utils/explorers';
+import { suiscanPackageUrl, suivisionPackageUrl } from '../utils/explorers';
 // Removed unused Button import
 
 export interface Dependency {
@@ -450,13 +450,13 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                       <span className="text-sm">View on SuiScan</span>
                     </a>
                     <a
-                      href={suiexplorerPackageUrl(packageId, network as any)}
+                      href={suivisionPackageUrl(packageId, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
                     >
                       <ExternalLink className="w-4 h-4 flex-shrink-0" />
-                      <span className="text-sm">View on Sui Explorer</span>
+                      <span className="text-sm">View on SuiVision</span>
                     </a>
                   </div>
                 ) : (currentSection === 'dependencies' && dependencies.length > 0) ? (

@@ -425,6 +425,7 @@ export default function GraphView() {
           edge={selectedEdge}
           graphData={graphData}
           analysisId={id || ''}
+          network={metadata?.network as any}
           onClose={() => {
             setSelectedNode(null);
             setSelectedEdge(null);
