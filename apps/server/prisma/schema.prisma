@@ -1,0 +1,244 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  walletAddress String @unique // Sui wallet address
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  analyses Analysis[]
+
+  @@index([walletAddress])
+}
+
+model Analysis {
+  id          String   @id @default(cuid())
+  packageId   String
+  network     String   @default("mainnet") // "mainnet" | "testnet" | "devnet"
+  createdAt   DateTime @default(now())
+  depth       Int      @default(1)
+  paramsJson  Json? // analysis configuration (maxObjDepth, typeCountThreshold, etc.)
+  summaryJson Json // complete graph data
+  slug        String   @unique // URL-friendly identifier for the analysis
+  userId      String? // Owner of this analysis
+  user        User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  edges     Edge[]
+  types     Type[]
+  objects   Object[]
+  events    Event[]
+  flags     Flag[]
+  typeStats TypeStats[]
+
+  @@index([packageId])
+  @@index([createdAt(sort: Desc)])
+  @@index([userId])
+  @@index([slug])
+}
+
+model Package {
+  id          String    @id @default(cuid())
+  address     String    @unique
+  version     String?
+  publisher   String?
+  publishedAt DateTime?
+  displayName String?
+  explanation String?   @db.Text // LLM-generated explanation
+  explanationStatus String? // 'pending' | 'done' | 'error'
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  modules Module[]
+}
+
+model Module {
+  id          String   @id @default(cuid())
+  name        String
+  fullName    String   @unique // "0xP::m"
+  packageId   String
+  package     Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  friendsJson Json? // array of friend module FQNs
+  flagsJson   Json? // array of flags
+  decompiledSource String? @db.Text // Decompiled Move source code
+  explanation String?  @db.Text // LLM-generated explanation
+  explanationStatus String? // 'pending' | 'done' | 'error'
+  ultraSummary String? @db.Text // One-sentence summary for package explanations
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  functions Function[]
+  types     Type[]
+
+  @@unique([packageId, name])
+  @@index([fullName])
+}
+
+model Function {
+  id         String  @id @default(cuid())
+  name       String
+  visibility String
+  isEntry    Boolean @default(false)
+  moduleId   String
+  module     Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([moduleId, name])
+  @@index([moduleId])
+}
+
+model Edge {
+  id           String   @id @default(cuid())
+  kind         String // "PKG_CONTAINS" | "PKG_DEPENDS" | "MOD_CALLS" | etc.
+  fromNode     String
+  toNode       String
+  evidenceJson Json? // detailed evidence for the edge
+  analysisId   String
+  analysis     Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId])
+  @@index([kind])
+  @@index([fromNode])
+  @@index([toNode])
+}
+
+model Type {
+  id         String   @id @default(cuid())
+  fqn        String   @unique // "0xP::m::S"
+  moduleId   String
+  module     Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  fieldsJson Json? // array of { name, type }
+  hasKey     Boolean  @default(false)
+  abilities  Json? // array of ability strings
+  analysisId String
+  analysis   Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([moduleId])
+  @@index([fqn])
+  @@index([analysisId])
+}
+
+model Object {
+  id           String   @id @default(cuid())
+  objectId     String // actual on-chain object ID
+  typeFqn      String // fully-qualified type name
+  ownerJson    Json // { kind, address? }
+  shared       Boolean  @default(false)
+  snapshotJson Json? // object fields snapshot
+  version      String?
+  digest       String?
+  analysisId   String
+  analysis     Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([objectId])
+  @@index([typeFqn])
+  @@index([analysisId])
+}
+
+model Address {
+  id      String  @id @default(cuid())
+  address String  @unique
+  label   String?
+
+  @@index([address])
+}
+
+model Event {
+  id         String    @id @default(cuid())
+  eventId    String    @unique // "TX_DIGEST:INDEX"
+  kind       String // "Publish" | "Upgrade" | custom
+  pkgAddr    String? // package address
+  modName    String? // module name
+  ts         DateTime?
+  tx         String? // transaction digest
+  dataJson   Json? // event data
+  sender     String? // event sender address
+  analysisId String
+  analysis   Analysis  @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([kind])
+  @@index([pkgAddr])
+  @@index([analysisId])
+}
+
+model Flag {
+  id          String   @id @default(cuid())
+  level       String // "LOW" | "MED" | "HIGH"
+  kind        String // "AdminCap" | "HardcodedAddress" | etc.
+  scope       String // "package" | "module" | "type" | "object"
+  refId       String // reference to entity
+  detailsJson Json? // additional context
+  analysisId  String
+  analysis    Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([level])
+  @@index([kind])
+  @@index([scope])
+  @@index([refId])
+  @@index([analysisId])
+}
+
+model TypeStats {
+  id           String   @id @default(cuid())
+  typeFqn      String
+  count        Int?
+  uniqueOwners Int?
+  sampled      Int?
+  shared       Int?
+  analysisId   String
+  analysis     Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([typeFqn])
+  @@index([analysisId])
+}
+
+model SourceCode {
+  id         String   @id @default(cuid())
+  packageId  String
+  moduleName String
+  network    String // "mainnet" | "testnet" | "devnet"
+  sourceCode String   @db.Text // Full source code from Revela
+  functions  Json // Array of { name, visibility, params, calls: [{module, func}] }
+  createdAt  DateTime @default(now())
+
+  @@unique([packageId, moduleName, network])
+  @@index([packageId])
+  @@index([moduleName])
+  @@index([network])
+}
+
+// RAG Chat History (normal schema)
+model RagChat {
+  id         BigInt   @id @default(autoincrement())
+  analysisId String? // Link to specific analysis session
+  packageId  String? // Optional: scope to a specific package
+  moduleId   String? // Optional: scope to a specific module
+  createdAt  DateTime @default(now())
+
+  messages RagMessage[]
+
+  @@index([analysisId])
+  @@index([packageId])
+  @@index([moduleId])
+}
+
+model RagMessage {
+  id        BigInt   @id @default(autoincrement())
+  chatId    BigInt
+  chat      RagChat  @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      String // 'user' | 'assistant' | 'system'
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([chatId])
+  @@index([createdAt])
+}
