@@ -1,22 +1,21 @@
 {
-    "name": "@suilens/core",
-    "version": "2.0.0",
-    "type": "module",
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "import": "./dist/index.js"
-      }
-    },
-    "scripts": {
-      "build": "tsc",
-      "watch": "tsc --watch"
-    },
-    "devDependencies": {
-      "typescript": "^5.3.3"
+  "name": "@suilens/core",
+  "version": "2.0.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
   }
-  
-  
+}
+
