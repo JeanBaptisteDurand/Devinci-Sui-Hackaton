@@ -54,7 +54,9 @@ export function Home() {
         }
 
         if (data.status === 'failed' || data.status === 'error') {
-          throw new Error(data.failedReason || 'Analysis job failed');
+          // Use error field from job status (which contains failedReason)
+          const errorMessage = data.error || data.failedReason || 'Analysis job failed';
+          throw new Error(errorMessage);
         }
 
         // Wait 1 second before next poll
@@ -193,10 +195,12 @@ export function Home() {
       setPackageId(''); // Clear after successful analysis
     } catch (err: any) {
       logger.error('Home', 'Analysis error', { error: err.message, stack: err.stack });
-      setError(err.message || 'Failed to analyze package');
+      // Display error message - "Invalid address" will be shown clearly
+      const errorMessage = err.message || 'Failed to analyze package';
+      setError(errorMessage);
       toast({
-        title: 'Analysis Failed',
-        description: err.message || 'Failed to analyze package',
+        title: errorMessage.includes('Invalid address') ? 'Invalid Address' : 'Analysis Failed',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

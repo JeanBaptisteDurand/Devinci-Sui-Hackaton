@@ -599,3 +599,159 @@ export async function generateAllPackageExplanations(
   return { generated, skipped, failed, total };
 }
 
+/**
+ * Generate global analysis summary
+ * This generates a business-focused overview of the entire analysis, focusing on the primary package
+ * and how it interacts with dependencies to form coherent business logic.
+ */
+export async function generateGlobalAnalysisSummary(
+  analysisId: string,
+  options: { force?: boolean } = {}
+): Promise<{ summary: string }> {
+  const { force = false } = options;
+
+  logger.info('rag-explanations', `Generating global analysis summary for ${analysisId}`, { force });
+
+  try {
+    // 1. Load analysis
+    const analysis = await prisma.analysis.findUnique({
+      where: { id: analysisId },
+    });
+
+    if (!analysis) {
+      throw new Error(`Analysis ${analysisId} not found`);
+    }
+
+    // 2. Get graph data to identify packages
+    const graphData = analysis.summaryJson as any;
+    const packages = graphData.packages || [];
+    
+    if (packages.length === 0) {
+      throw new Error('No packages found in analysis');
+    }
+
+    // 3. Identify primary package (first one, or the one matching analysis.packageId)
+    const primaryPackage = packages.find((p: any) => p.address === analysis.packageId) || packages[0];
+    const primaryPackageAddress = primaryPackage.address;
+
+    // 4. Check if summary exists for this primary package and !force
+    const existingSummary = await prisma.globalAnalysisSummary.findUnique({
+      where: { analysisId },
+    });
+
+    if (existingSummary?.summary && existingSummary.primaryPackageId === primaryPackageAddress && !force) {
+      logger.info('rag-explanations', `Using cached global summary for analysis ${analysisId} (primaryPackage: ${primaryPackageAddress})`);
+      return { summary: existingSummary.summary };
+    }
+    
+    logger.info('rag-explanations', `Primary package: ${primaryPackageAddress}`, {
+      totalPackages: packages.length,
+    });
+
+    // 5. Get all package explanations
+    const packageAddresses = packages.map((p: any) => p.address);
+    const packagesWithExplanations = await prisma.package.findMany({
+      where: {
+        address: { in: packageAddresses },
+        explanation: { not: null },
+      },
+      select: {
+        address: true,
+        displayName: true,
+        explanation: true,
+      },
+    });
+
+    logger.info('rag-explanations', `Found ${packagesWithExplanations.length} packages with explanations`, {
+      totalPackages: packageAddresses.length,
+    });
+
+    if (packagesWithExplanations.length === 0) {
+      throw new Error('No package explanations found. Please generate package explanations first.');
+    }
+
+    // 6. Find primary package explanation
+    const primaryPackageExplanation = packagesWithExplanations.find(
+      (p) => p.address === primaryPackageAddress
+    );
+
+    if (!primaryPackageExplanation) {
+      throw new Error(`Primary package ${primaryPackageAddress} does not have an explanation. Please generate it first.`);
+    }
+
+    // 7. Build context with all package explanations
+    const packageExplanationsText = packagesWithExplanations
+      .map((pkg) => {
+        const isPrimary = pkg.address === primaryPackageAddress;
+        return `
+--- ${isPrimary ? 'PRIMARY PACKAGE' : 'DEPENDENCY PACKAGE'}: ${pkg.displayName || pkg.address} ---
+${pkg.explanation}
+`.trim();
+      })
+      .join('\n\n');
+
+    // 8. Build prompt (shorter, more focused)
+    const systemPrompt = `You are a Sui Move smart contract expert and business analyst. Generate a very concise business-focused summary (2-3 short paragraphs maximum).
+
+Focus on:
+1. What the primary package does from a business perspective
+2. How it integrates with dependencies to form a complete solution
+
+Keep it brief and accessible. End with: "To learn more about each specific package or module, explore the AI menu."`;
+
+    const userPrompt = `
+ANALYSIS ID: ${analysisId}
+PRIMARY PACKAGE: ${primaryPackageAddress}${primaryPackageExplanation.displayName ? ` (${primaryPackageExplanation.displayName})` : ''}
+TOTAL PACKAGES: ${packages.length}
+NETWORK: ${analysis.network || 'mainnet'}
+
+PACKAGE EXPLANATIONS:
+${packageExplanationsText}
+
+Based on these package analyses, provide a concise global summary that explains the business logic and architecture from a high-level perspective, focusing on the primary package and how it integrates with dependencies.`;
+
+    logger.info('rag-explanations', `Calling LLM to generate global summary for analysis ${analysisId}`);
+
+    // 9. Call LLM (smaller response)
+    const summary = await generateChatCompletion(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      {
+        temperature: 0.5,
+        maxTokens: 600, // Much smaller response
+      }
+    );
+
+    // 10. Save summary with primaryPackageId (plain text only, ciphertext will be added later)
+    await prisma.globalAnalysisSummary.upsert({
+      where: { analysisId },
+      create: {
+        analysisId,
+        primaryPackageId: primaryPackageAddress,
+        summary,
+        ciphertext: null, // Will be encrypted later
+      },
+      update: {
+        primaryPackageId: primaryPackageAddress,
+        summary,
+        // Don't update ciphertext yet
+      },
+    });
+
+    logger.info('rag-explanations', `✓ Generated global summary for analysis ${analysisId}`, {
+      summaryLength: summary.length,
+    });
+
+    return { summary };
+  } catch (error: any) {
+    logger.error('rag-explanations', `Failed to generate global summary for analysis ${analysisId}`, {
+      error: error.message,
+      stack: error.stack,
+    });
+
+    throw error;
+  }
+}
+
