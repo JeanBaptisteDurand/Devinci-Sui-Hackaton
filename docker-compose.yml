@@ -1,0 +1,131 @@
+services:
+  # PostgreSQL Database with pgvector extension
+  # pgvector is required for RAG (Retrieval Augmented Generation) semantic search
+  # The extension is automatically available and will be enabled by migrations
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: suilens-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: suilens
+      POSTGRES_PASSWORD: suilens_dev_password
+      POSTGRES_DB: suilens
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U suilens"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suilens-network
+
+  # Redis (for BullMQ)
+  redis:
+    image: redis:7-alpine
+    container_name: suilens-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - suilens-network
+
+  # Backend Server
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: suilens-server
+    restart: unless-stopped
+    environment:
+      # Database
+      DATABASE_URL: postgresql://suilens:suilens_dev_password@postgres:5432/suilens?schema=public
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      # Server
+      PORT: 3001
+      NODE_ENV: development
+      # JWT Authentication
+      JWT_SECRET: dev-secret-change-in-production-please
+      JWT_EXPIRES_IN: 365d
+      # OpenAI (Optional - for LLM features like package explanations)
+      # Uncomment and add your key to enable AI features
+      # OPENAI_API_KEY: your_openai_api_key_here
+      # OPENAI_CHAT_MODEL: gpt-4o-mini
+      # OPENAI_EMBEDDING_MODEL: text-embedding-3-small
+    ports:
+      - "3001:3001"
+    volumes:
+      # Bind mount source code for hot reload
+      - ./apps/server/src:/app/apps/server/src
+      - ./apps/server/prisma:/app/apps/server/prisma
+      - ./packages:/app/packages
+      # Named volumes for node_modules to avoid conflicts with host
+      - server_node_modules:/app/node_modules
+      - server_app_node_modules:/app/apps/server/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - suilens-network
+    # Enable TTY for better logging
+    tty: true
+    stdin_open: true
+
+  # Frontend Web App
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: suilens-web
+    restart: unless-stopped
+    environment:
+      # Vite configuration
+      VITE_API_URL: http://server:3001
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      # Bind mount source code for hot reload
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public
+      - ./apps/web/index.html:/app/apps/web/index.html
+      - ./apps/web/vite.config.ts:/app/apps/web/vite.config.ts
+      - ./apps/web/tailwind.config.js:/app/apps/web/tailwind.config.js
+      - ./apps/web/postcss.config.js:/app/apps/web/postcss.config.js
+      - ./packages:/app/packages
+      # Named volumes for node_modules to avoid conflicts with host
+      - web_node_modules:/app/node_modules
+      - web_app_node_modules:/app/apps/web/node_modules
+    depends_on:
+      - server
+    networks:
+      - suilens-network
+    # Enable TTY for better logging
+    tty: true
+    stdin_open: true
+
+volumes:
+  postgres_data:
+  redis_data:
+  server_node_modules:
+  server_app_node_modules:
+  web_node_modules:
+  web_app_node_modules:
+
+networks:
+  suilens-network:
+    driver: bridge
+
