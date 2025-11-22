@@ -5,3 +5,10 @@ dist
 *.log
 logs/
 build/
+node_modules
+dist
+.env
+.DS_Store
+*.log
+logs/
+build/
