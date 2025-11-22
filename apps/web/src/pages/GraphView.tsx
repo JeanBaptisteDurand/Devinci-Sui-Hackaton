@@ -22,7 +22,7 @@ import AiInterfaceDrawer from '../components/AiInterfaceDrawer';
 import RagChatWidget from '../components/RagChatWidget';
 import ControlMenu, { VisibilityState } from '../components/ControlMenu';
 import MapLegend from '../components/MapLegend';
-import { radialLayoutV2 } from '../utils/radialLayoutV2';
+import { radialLayout } from '../utils/radialLayout';
 import { logger } from '../utils/logger';
 import { useAuth } from '@/hooks/use-auth';
 import { useCurrentAccount } from '@mysten/dapp-kit';
@@ -136,7 +136,7 @@ export default function GraphView() {
       // Filter graph data based on visibility state
       const filteredData = applyVisibilityFilters(graphData, visibilityState, primaryPackageId);
       
-      const { nodes: layoutNodes, edges: layoutEdges } = radialLayoutV2(filteredData, primaryPackageId);
+      const { nodes: layoutNodes, edges: layoutEdges } = radialLayout(filteredData, primaryPackageId);
       
       // Apply node type visibility filters to the rendered nodes
       const visibleNodes = layoutNodes.filter(node => {
