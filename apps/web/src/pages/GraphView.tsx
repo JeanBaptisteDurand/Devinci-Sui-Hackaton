@@ -10,6 +10,7 @@ import ReactFlow, {
   useEdgesState,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { Sparkles } from 'lucide-react';
 import PackageNode from '../components/PackageNode';
 import ModuleNode from '../components/ModuleNode';
 import TypeNode from '../components/TypeNode';
@@ -17,8 +18,10 @@ import ObjectNode from '../components/ObjectNode';
 import EventNode from '../components/EventNode';
 import AddressNode from '../components/AddressNode';
 import RightDrawer from '../components/RightDrawer';
+import AiInterfaceDrawer from '../components/AiInterfaceDrawer';
 import RagChatWidget from '../components/RagChatWidget';
 import ControlMenu, { VisibilityState } from '../components/ControlMenu';
+import MapLegend from '../components/MapLegend';
 import { radialLayoutV2 } from '../utils/radialLayoutV2';
 import { logger } from '../utils/logger';
 import { useAuth } from '@/hooks/use-auth';
@@ -45,6 +48,7 @@ export default function GraphView() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<FlowEdge | null>(null);
   const [primaryPackageId, setPrimaryPackageId] = useState<string | null>(null);
+  const [isAiDrawerOpen, setIsAiDrawerOpen] = useState(false);
   
   // Visibility state for control menu
   const [visibilityState, setVisibilityState] = useState<VisibilityState>({
@@ -102,7 +106,18 @@ export default function GraphView() {
         events: graphData.events?.length || 0,
         addresses: graphData.addresses?.length || 0,
         edges: graphData.edges?.length || 0,
+        edgesData: graphData.edges,
       });
+
+      // Log packages and their modules
+      if (graphData.packages && graphData.modules) {
+        console.log('Packages and their modules:');
+        graphData.packages.forEach((pkg: GraphData['packages'][0]) => {
+          const pkgModules = graphData.modules?.filter((mod: GraphData['modules'][0]) => mod.package === pkg.id);
+          console.log(`Package: ${pkg.address} (${pkg.displayName || 'No name'})`);
+          console.log('Modules:', pkgModules?.map((m: GraphData['modules'][0]) => m.name).join(', '));
+        });
+      }
       
       // Debug: Log some sample object data
       if (graphData.objects && graphData.objects.length > 0) {
@@ -346,9 +361,19 @@ export default function GraphView() {
 
   return (
     <div className="relative" style={{ height: 'calc(100vh - 80px)' }}>
-      {/* Network badge */}
-      {metadata?.network && (
-        <div className="absolute top-4 right-4 z-10">
+      {/* Network badge and AI Toggle */}
+      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
+        {/* AI Interface Toggle */}
+        <button
+          onClick={() => setIsAiDrawerOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-500 rounded-lg shadow-lg hover:bg-blue-50 transition-colors text-blue-700 font-bold"
+        >
+          <Sparkles className="w-4 h-4" />
+          <span>AI Interface</span>
+        </button>
+
+        {/* Network badge */}
+        {metadata?.network && (
           <div className="px-4 py-2 rounded-lg shadow-lg font-medium bg-white border-2 border-blue-500">
             <span className="text-xs text-gray-500 uppercase mr-2">Network:</span>
             <span className={`font-bold ${
@@ -359,8 +384,8 @@ export default function GraphView() {
               {metadata.network}
             </span>
           </div>
-        </div>
-      )}
+        )}
+      </div>
       
       {/* Control Menu */}
       <ControlMenu
@@ -369,6 +394,8 @@ export default function GraphView() {
         onVisibilityChange={setVisibilityState}
       />
       
+      
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -385,8 +412,12 @@ export default function GraphView() {
         elementsSelectable={true}
       >
         <Background />
-        <Controls />
-        <MiniMap />
+        {/* Map Legend */}
+      <MapLegend />
+        <Controls 
+        position='bottom-right'
+        />
+        {/* <MiniMap /> */}
       </ReactFlow>
       {(selectedNode || selectedEdge) && (
         <RightDrawer
@@ -400,11 +431,39 @@ export default function GraphView() {
           }}
         />
       )}
+      
+      <AiInterfaceDrawer 
+        isOpen={isAiDrawerOpen} 
+        onClose={() => setIsAiDrawerOpen(false)} 
+        packageId={primaryPackageId || undefined}
+        network={metadata?.network}
+        modules={graphData?.modules
+          ?.filter((m: any) => m.package === primaryPackageId)
+          .map((m: any) => ({ 
+            name: m.name, 
+            id: m.id,
+            types: m.typesDefined?.map((t: string) => t.split('::').pop()) || []
+          })) || []}
+        dependencies={graphData?.packages
+          ?.filter((p: any) => p.id !== primaryPackageId)
+          .map((p: any) => ({
+            id: p.id,
+            name: p.displayName || p.address,
+            modules: graphData.modules
+              ?.filter((m: any) => m.package === p.id)
+              .map((m: any) => ({ 
+                name: m.name, 
+                id: m.id,
+                types: m.typesDefined?.map((t: string) => t.split('::').pop()) || []
+              })) || []
+          })) || []}
+      />
+
       {/* RAG Chat Widget */}
-      <RagChatWidget
+      {/* <RagChatWidget
         packageId={metadata?.packageId}
         analysisId={id || ''}
-      />
+      /> */}
     </div>
   );
 }
