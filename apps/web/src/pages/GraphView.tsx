@@ -437,6 +437,7 @@ export default function GraphView() {
         onClose={() => setIsAiDrawerOpen(false)} 
         packageId={primaryPackageId || undefined}
         network={metadata?.network}
+        analysisId={id || undefined}
         modules={graphData?.modules
           ?.filter((m: any) => m.package === primaryPackageId)
           .map((m: any) => ({ 

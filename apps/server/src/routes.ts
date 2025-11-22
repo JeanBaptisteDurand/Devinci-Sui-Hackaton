@@ -1107,5 +1107,57 @@ router.post('/rag/reindex-all', async (req, res) => {
   }
 });
 
+// Generate global analysis summary
+router.post('/analysis/:analysisId/generate-global-summary', async (req, res) => {
+  try {
+    const { analysisId } = req.params;
+    const { force = false } = req.body;
+
+    logger.info('routes', `POST /api/analysis/${analysisId}/generate-global-summary`, { force });
+
+    const { generateGlobalAnalysisSummary } = await import('./services/rag/index.js');
+    const result = await generateGlobalAnalysisSummary(analysisId, { force });
+
+    res.json(result);
+  } catch (error: any) {
+    logger.error('routes', 'POST /api/analysis/:id/generate-global-summary - Failed', {
+      error: error.message,
+      stack: error.stack,
+    });
+    res.status(500).json({ error: error.message || 'Failed to generate global summary' });
+  }
+});
+
+// Get global analysis summary
+router.get('/analysis/:analysisId/global-summary', async (req, res) => {
+  try {
+    const { analysisId } = req.params;
+
+    logger.info('routes', `GET /api/analysis/${analysisId}/global-summary`);
+
+    const summary = await prisma.globalAnalysisSummary.findUnique({
+      where: { analysisId },
+      select: {
+        id: true,
+        summary: true,
+        primaryPackageId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!summary) {
+      return res.status(404).json({ error: 'Global summary not found' });
+    }
+
+    res.json(summary);
+  } catch (error: any) {
+    logger.error('routes', 'GET /api/analysis/:id/global-summary - Failed', {
+      error: error.message,
+    });
+    res.status(500).json({ error: error.message || 'Failed to get global summary' });
+  }
+});
+
 export default router;
 
