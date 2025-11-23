@@ -593,7 +593,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
         <div className="flex-1 flex overflow-hidden">
           
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col bg-card">
+          <div className="flex-1 flex flex-col bg-card min-w-0">
             <div className="h-14 border-b border-border flex items-center px-6">
               <h3 className="font-semibold text-lg text-primary flex items-center gap-2">
                 {React.createElement(SECTIONS[currentSection].icon, { className: "w-5 h-5" })}
@@ -669,7 +669,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
           </div>
 
           {/* Navigation Column */}
-          <div className="w-72 bg-muted/50 border-l border-border flex flex-col">
+          <div className="w-72 bg-muted/50 border-l border-border flex flex-col flex-shrink-0">
             <div className="p-6 border-b border-border">
               <h3 
                 className="font-bold text-foreground uppercase text-xs tracking-wider cursor-pointer flex items-center gap-2"
