@@ -144,6 +144,15 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const summaryLoadRef = useRef<boolean>(false); // Track if summary is being loaded
+
+  // Chat state
+  const [isSending, setIsSending] = useState(false);
+  const [chatIds, setChatIds] = useState<Record<Section, number | null>>({
+    summary: null,
+    package: null,
+    modules: null,
+    dependencies: null
+  });
   
   // Resizing state
   const [width, setWidth] = useState(800); // Default width in pixels
@@ -223,14 +232,15 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
     };
   }, [resize, stopResizing]);
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isSending) return;
 
+    const userContent = inputValue;
     const newMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue
+      content: userContent
     };
 
     setMessages(prev => ({
@@ -239,19 +249,69 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
     }));
 
     setInputValue('');
+    setIsSending(true);
 
-    // Mock AI response
-    setTimeout(() => {
+    try {
+      // Determine context based on section and selection
+      let currentPackageId = packageId;
+      let currentModuleId = undefined;
+
+      if (currentSection === 'modules' && selectedModule) {
+        currentModuleId = selectedModule.id;
+      } else if (currentSection === 'dependencies' && selectedDependency) {
+        currentPackageId = selectedDependency.id;
+      }
+
+      const response = await fetch('/api/rag-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: userContent,
+          chatId: chatIds[currentSection] || undefined,
+          analysisId: analysisId || undefined,
+          packageId: currentPackageId || undefined,
+          moduleId: currentModuleId || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
+      const data = await response.json();
+      
+      if (!chatIds[currentSection] && data.chatId) {
+        setChatIds(prev => ({
+          ...prev,
+          [currentSection]: data.chatId
+        }));
+      }
+
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        content: `This is a mock response for the "${SECTIONS[currentSection].title}" section. You said: "${newMessage.content}"`
+        content: data.answer
       };
+
       setMessages(prev => ({
         ...prev,
         [currentSection]: [...prev[currentSection], aiResponse]
       }));
-    }, 1000);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: "Sorry, I encountered an error while processing your request."
+      };
+      setMessages(prev => ({
+        ...prev,
+        [currentSection]: [...prev[currentSection], errorMessage]
+      }));
+    } finally {
+      setIsSending(false);
+    }
   };
 
   // Fetch global summary when drawer opens or when entering summary section
@@ -574,6 +634,16 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   </div>
                 </div>
               ))}
+              {isSending && (
+                <div className="flex justify-start">
+                  <div className="bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-none px-5 py-3 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <div className={`animate-spin rounded-full h-4 w-4 border-b-2 ${SECTION_STYLES[currentSection].iconColor.replace('text-', 'border-')}`}></div>
+                      <span className="text-sm text-gray-500">Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -583,16 +653,17 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask something about this section..."
-                  className={`flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all ${SECTION_STYLES[currentSection].ring}`}
+                  placeholder={isSending ? "Waiting for response..." : "Ask something about this section..."}
+                  disabled={isSending}
+                  className={`flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all ${SECTION_STYLES[currentSection].ring} disabled:opacity-50`}
                 />
                 <button 
                   type="submit"
-                  disabled={!inputValue.trim()}
+                  disabled={!inputValue.trim() || isSending}
                   className={`px-4 py-2 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium ${SECTION_STYLES[currentSection].button}`}
                 >
                   <Send className="w-4 h-4" />
-                  Send
+                  {isSending ? '...' : 'Send'}
                 </button>
               </form>
             </div>
