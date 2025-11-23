@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useSubscription } from '@/hooks/use-subscription';
 import { useSuiTransactions } from '@/hooks/use-sui-transactions';
 import { toast } from '@/hooks/use-toast';
+import { suivisionTxUrl } from '@/utils/explorers';
 
 export function PackageAnalyzer() {
   const account = useCurrentAccount();
@@ -51,7 +52,7 @@ export function PackageAnalyzer() {
       console.log('✅ Analysis transaction complete!');
       console.log('📋 Transaction:', result.digest);
       console.log('🔗 View on Explorer:', 
-        `https://suiexplorer.com/txblock/${result.digest}?network=testnet`);
+        suivisionTxUrl(result.digest,  'testnet'));
       
       toast({
         title: 'Analysis Started',

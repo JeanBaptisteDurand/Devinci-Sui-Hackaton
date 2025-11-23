@@ -1,4 +1,4 @@
-import { suiscanTxUrl, suiexplorerTxUrl } from '../utils/explorers';
+import { suiscanTxUrl, suivisionTxUrl } from '../utils/explorers';
 
 interface EventPanelProps {
   node: any;
@@ -72,7 +72,7 @@ export default function EventPanel({ node, onClose }: EventPanelProps) {
               View Transaction on SuiScan
             </a>
             <a
-              href={suiexplorerTxUrl(tx)}
+              href={suivisionTxUrl(tx)}
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full px-4 py-2 bg-green-500 text-white text-center rounded hover:bg-green-600 transition-colors"

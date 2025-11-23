@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Send, MessageSquare, Package, Box, Link as LinkIcon, GripVertical, ArrowLeft, ExternalLink } from 'lucide-react';
-import { suiscanPackageUrl, suiexplorerPackageUrl } from '../utils/explorers';
+import { suiscanPackageUrl, suivisionPackageUrl, suiscanModuleUrl, suivisionModuleUrl } from '../utils/explorers';
+import TypeModal from './TypeModal';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
 // Removed unused Button import
 
 export interface Dependency {
@@ -13,6 +17,13 @@ export interface ModuleInfo {
   name: string;
   id: string;
   types?: string[];
+  flags?: string[];
+  functions?: Array<{
+    name: string;
+    visibility: string;
+    isEntry?: boolean;
+  }>;
+  packageId?: string;
 }
 
 interface AiInterfaceDrawerProps {
@@ -56,11 +67,73 @@ const SECTIONS: Record<Section, { title: string; icon: React.ElementType; initia
   }
 };
 
+const SECTION_STYLES: Record<Section, { active: string; inactive: string; iconColor: string; chatBubble: string; button: string; ring: string }> = {
+  summary: {
+    active: 'bg-gray-100 text-gray-900 ring-1 ring-gray-200',
+    inactive: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+    iconColor: 'text-gray-500',
+    chatBubble: 'bg-gray-600 text-white',
+    button: 'bg-gray-600 hover:bg-gray-700',
+    ring: 'focus:ring-gray-500'
+  },
+  package: {
+    active: 'bg-yellow-50 text-yellow-700 ring-1 ring-yellow-200',
+    inactive: 'text-gray-600 hover:bg-yellow-50 hover:text-yellow-700',
+    iconColor: 'text-yellow-600',
+    chatBubble: 'bg-yellow-600 text-white',
+    button: 'bg-yellow-600 hover:bg-yellow-700',
+    ring: 'focus:ring-yellow-500'
+  },
+  modules: {
+    active: 'bg-green-50 text-green-700 ring-1 ring-green-200',
+    inactive: 'text-gray-600 hover:bg-green-50 hover:text-green-700',
+    iconColor: 'text-green-600',
+    chatBubble: 'bg-green-600 text-white',
+    button: 'bg-green-600 hover:bg-green-700',
+    ring: 'focus:ring-green-500'
+  },
+  dependencies: {
+    active: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200',
+    inactive: 'text-gray-600 hover:bg-blue-50 hover:text-blue-700',
+    iconColor: 'text-blue-600',
+    chatBubble: 'bg-blue-600 text-white',
+    button: 'bg-blue-600 hover:bg-blue-700',
+    ring: 'focus:ring-blue-500'
+  }
+};
+
+const MarkdownComponents = {
+  p: ({node, ...props}: any) => <p className="text-sm leading-relaxed break-words mb-2 last:mb-0" {...props} />,
+  a: ({node, ...props}: any) => <a className="underline hover:no-underline break-all" target="_blank" rel="noopener noreferrer" {...props} />,
+  ul: ({node, ...props}: any) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+  ol: ({node, ...props}: any) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+  li: ({node, ...props}: any) => <li className="text-sm" {...props} />,
+  h1: ({node, ...props}: any) => <h1 className="text-lg font-bold mb-2 mt-4 first:mt-0" {...props} />,
+  h2: ({node, ...props}: any) => <h2 className="text-base font-bold mb-2 mt-3 first:mt-0" {...props} />,
+  h3: ({node, ...props}: any) => <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0" {...props} />,
+  code: ({node, inline, className, children, ...props}: any) => {
+    return inline ? (
+      <code className="bg-black/10 px-1 py-0.5 rounded text-xs font-mono break-all" {...props}>
+        {children}
+      </code>
+    ) : (
+      <pre className="bg-black/10 p-2 rounded-lg overflow-x-auto text-xs font-mono mb-2">
+        <code {...props}>{children}</code>
+      </pre>
+    );
+  },
+  blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-current pl-4 italic my-2 opacity-80" {...props} />,
+  table: ({node, ...props}: any) => <div className="overflow-x-auto mb-2"><table className="min-w-full divide-y divide-current border-current border opacity-80" {...props} /></div>,
+  th: ({node, ...props}: any) => <th className="px-3 py-2 bg-black/5 text-left text-xs font-medium uppercase tracking-wider border-b border-current opacity-70" {...props} />,
+  td: ({node, ...props}: any) => <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-current opacity-90" {...props} />,
+};
+
 export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], dependencies = [], packageId, network = 'mainnet', analysisId }: AiInterfaceDrawerProps) {
   const [currentSection, setCurrentSection] = useState<Section>('summary');
   const [showSubNav, setShowSubNav] = useState(false);
   const [selectedDependency, setSelectedDependency] = useState<Dependency | null>(null);
   const [selectedModule, setSelectedModule] = useState<ModuleInfo | null>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [messages, setMessages] = useState<Record<Section, Message[]>>({
     summary: [],
     package: [],
@@ -71,6 +144,15 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [loadingSummary, setLoadingSummary] = useState(false);
   const summaryLoadRef = useRef<boolean>(false); // Track if summary is being loaded
+
+  // Chat state
+  const [isSending, setIsSending] = useState(false);
+  const [chatIds, setChatIds] = useState<Record<Section, number | null>>({
+    summary: null,
+    package: null,
+    modules: null,
+    dependencies: null
+  });
   
   // Resizing state
   const [width, setWidth] = useState(800); // Default width in pixels
@@ -150,14 +232,15 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
     };
   }, [resize, stopResizing]);
 
-  const handleSendMessage = (e?: React.FormEvent) => {
+  const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() || isSending) return;
 
+    const userContent = inputValue;
     const newMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputValue
+      content: userContent
     };
 
     setMessages(prev => ({
@@ -166,19 +249,69 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
     }));
 
     setInputValue('');
+    setIsSending(true);
 
-    // Mock AI response
-    setTimeout(() => {
+    try {
+      // Determine context based on section and selection
+      let currentPackageId = packageId;
+      let currentModuleId = undefined;
+
+      if (currentSection === 'modules' && selectedModule) {
+        currentModuleId = selectedModule.id;
+      } else if (currentSection === 'dependencies' && selectedDependency) {
+        currentPackageId = selectedDependency.id;
+      }
+
+      const response = await fetch('/api/rag-chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: userContent,
+          chatId: chatIds[currentSection] || undefined,
+          analysisId: analysisId || undefined,
+          packageId: currentPackageId || undefined,
+          moduleId: currentModuleId || undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
+      }
+
+      const data = await response.json();
+      
+      if (!chatIds[currentSection] && data.chatId) {
+        setChatIds(prev => ({
+          ...prev,
+          [currentSection]: data.chatId
+        }));
+      }
+
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         role: 'ai',
-        content: `This is a mock response for the "${SECTIONS[currentSection].title}" section. You said: "${newMessage.content}"`
+        content: data.answer
       };
+
       setMessages(prev => ({
         ...prev,
         [currentSection]: [...prev[currentSection], aiResponse]
       }));
-    }, 1000);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: "Sorry, I encountered an error while processing your request."
+      };
+      setMessages(prev => ({
+        ...prev,
+        [currentSection]: [...prev[currentSection], errorMessage]
+      }));
+    } finally {
+      setIsSending(false);
+    }
   };
 
   // Fetch global summary when drawer opens or when entering summary section
@@ -360,6 +493,62 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
     }
   };
 
+  const handleDependencyClick = async (dep: Dependency) => {
+    setSelectedDependency(dep);
+    
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: `Explain the dependency package ${dep.name}`
+    };
+    
+    setMessages(prev => ({
+      ...prev,
+      [currentSection]: [...prev[currentSection], userMessage]
+    }));
+
+    if (!dep.modules || dep.modules.length === 0) {
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: "Not analyzed, dependency of a dependency."
+      };
+
+      setMessages(prev => ({
+        ...prev,
+        [currentSection]: [...prev[currentSection], aiMessage]
+      }));
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/packages/${dep.id}`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      
+      const data = await response.json();
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: data.explanation || "I don't have an explanation for this package yet."
+      };
+
+      setMessages(prev => ({
+        ...prev,
+        [currentSection]: [...prev[currentSection], aiMessage]
+      }));
+    } catch (error) {
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'ai',
+        content: "Sorry, I encountered an error while fetching the package explanation."
+      };
+      setMessages(prev => ({
+        ...prev,
+        [currentSection]: [...prev[currentSection], errorMessage]
+      }));
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -406,7 +595,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
           {/* Chat Area */}
           <div className="flex-1 flex flex-col bg-white">
             <div className="h-14 border-b border-gray-100 flex items-center px-6">
-              <h3 className="font-semibold text-lg text-blue-600 flex items-center gap-2">
+              <h3 className={`font-semibold text-lg flex items-center gap-2 ${SECTION_STYLES[currentSection].iconColor}`}>
                 {React.createElement(SECTIONS[currentSection].icon, { className: "w-5 h-5" })}
                 {SECTIONS[currentSection].title}
               </h3>
@@ -428,14 +617,33 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   <div 
                     className={`max-w-[80%] rounded-2xl px-5 py-3 shadow-sm ${
                       msg.role === 'user' 
-                        ? 'bg-blue-600 text-white rounded-br-none' 
+                        ? `${SECTION_STYLES[currentSection].chatBubble} rounded-br-none` 
                         : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
                     }`}
                   >
-                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    {msg.role === 'ai' ? (
+                      <ReactMarkdown 
+                        components={MarkdownComponents}
+                        remarkPlugins={[remarkGfm]}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    ) : (
+                      <p className="text-sm leading-relaxed break-words">{msg.content}</p>
+                    )}
                   </div>
                 </div>
               ))}
+              {isSending && (
+                <div className="flex justify-start">
+                  <div className="bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-none px-5 py-3 shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <div className={`animate-spin rounded-full h-4 w-4 border-b-2 ${SECTION_STYLES[currentSection].iconColor.replace('text-', 'border-')}`}></div>
+                      <span className="text-sm text-gray-500">Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -445,16 +653,17 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask something about this section..."
-                  className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                  placeholder={isSending ? "Waiting for response..." : "Ask something about this section..."}
+                  disabled={isSending}
+                  className={`flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all ${SECTION_STYLES[currentSection].ring} disabled:opacity-50`}
                 />
                 <button 
                   type="submit"
-                  disabled={!inputValue.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium"
+                  disabled={!inputValue.trim() || isSending}
+                  className={`px-4 py-2 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium ${SECTION_STYLES[currentSection].button}`}
                 >
                   <Send className="w-4 h-4" />
-                  Send
+                  {isSending ? '...' : 'Send'}
                 </button>
               </form>
             </div>
@@ -494,32 +703,112 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     }}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all ${
                       currentSection === section
-                        ? 'bg-blue-100 text-blue-700 font-medium shadow-sm ring-1 ring-blue-200'
-                        : 'text-gray-600 hover:bg-gray-200 hover:text-gray-900'
+                        ? SECTION_STYLES[section].active
+                        : SECTION_STYLES[section].inactive
                     }`}
                   >
-                    {React.createElement(SECTIONS[section].icon, { className: "w-4 h-4" })}
+                    {React.createElement(SECTIONS[section].icon, { 
+                      className: `w-4 h-4 ${currentSection === section ? '' : SECTION_STYLES[section].iconColor}` 
+                    })}
                     <span className="text-sm">{section === 'summary' ? 'Global Summary' : SECTIONS[section].title}</span>
                   </button>
                 ))
               ) : selectedModule ? (
-                <div className="space-y-2">
-                  <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Types
-                  </div>
-                  {selectedModule.types && selectedModule.types.length > 0 ? (
-                    selectedModule.types.map((type) => (
-                      <div 
-                        key={type}
-                        className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 text-gray-600 bg-gray-100"
-                      >
-                        <div className="w-2 h-2 rounded-full bg-purple-400 flex-shrink-0" />
-                        <span className="text-sm truncate" title={type}>{type}</span>
+                <div className="space-y-4">
+                  {/* View Code */}
+                  {selectedModule.packageId && (
+                    <div>
+                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        View Code
                       </div>
-                    ))
-                  ) : (
-                    <div className="px-4 py-3 text-sm text-gray-500 italic">
-                      No types found in this module
+                      <div className="space-y-2">
+                        <a
+                          href={suiscanModuleUrl(selectedModule.packageId, selectedModule.name, network as any)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-blue-600 bg-blue-50 hover:bg-blue-100"
+                        >
+                          <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm">View on SuiScan</span>
+                        </a>
+                        <a
+                          href={suivisionModuleUrl(selectedModule.packageId, selectedModule.name, network as any)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-green-600 bg-green-50 hover:bg-green-100"
+                        >
+                          <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                          <span className="text-sm">View on SuiVision</span>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Security Flags */}
+                  {selectedModule.flags && selectedModule.flags.length > 0 && (
+                    <div>
+                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Security Flags
+                      </div>
+                      <div className="space-y-1">
+                        {selectedModule.flags.map((flag, idx) => (
+                          <div key={idx} className="text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200 flex items-center gap-2">
+                            <span>⚠️</span>
+                            {flag}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Types */}
+                  <div>
+                    <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      Types
+                    </div>
+                    {selectedModule.types && selectedModule.types.length > 0 ? (
+                      <div className="space-y-1">
+                        {selectedModule.types.map((type) => (
+                          <button 
+                            key={type}
+                            onClick={() => setSelectedType(type)}
+                            className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 text-purple-900 bg-purple-50 hover:bg-purple-100 transition-colors"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
+                            <span className="text-sm truncate" title={type}>{type.split('::').pop()}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500 italic">
+                        No types found in this module
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Functions */}
+                  {selectedModule.functions && selectedModule.functions.length > 0 && (
+                    <div>
+                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                        Functions ({selectedModule.functions.length})
+                      </div>
+                      <div className="space-y-1">
+                        {selectedModule.functions.map((func, idx) => (
+                          <div key={idx} className="w-full text-left px-4 py-2 rounded-lg bg-gray-100 border border-gray-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-mono font-semibold text-gray-800">{func.name}</span>
+                              {func.isEntry && (
+                                <span className="text-[10px] uppercase bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">
+                                  Entry
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500 capitalize">
+                              {func.visibility.toLowerCase()}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -529,9 +818,9 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     <button
                       key={module.id}
                       onClick={() => handleModuleClick(module)}
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-green-50 hover:text-green-700"
                     >
-                      <Box className="w-4 h-4 flex-shrink-0" />
+                      <Box className="w-4 h-4 flex-shrink-0 text-green-600" />
                       <span className="text-sm truncate" title={module.name}>{module.name}</span>
                     </button>
                   ))
@@ -541,19 +830,19 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                       href={suiscanPackageUrl(packageId, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-yellow-50 hover:text-yellow-700"
                     >
-                      <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                      <ExternalLink className="w-4 h-4 flex-shrink-0 text-yellow-600" />
                       <span className="text-sm">View on SuiScan</span>
                     </a>
                     <a
-                      href={suiexplorerPackageUrl(packageId, network as any)}
+                      href={suivisionPackageUrl(packageId, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-yellow-50 hover:text-yellow-700"
                     >
-                      <ExternalLink className="w-4 h-4 flex-shrink-0" />
-                      <span className="text-sm">View on Sui Explorer</span>
+                      <ExternalLink className="w-4 h-4 flex-shrink-0 text-yellow-600" />
+                      <span className="text-sm">View on SuiVision</span>
                     </a>
                   </div>
                 ) : (currentSection === 'dependencies' && dependencies.length > 0) ? (
@@ -562,9 +851,9 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                       <button
                         key={module.id}
                         onClick={() => handleModuleClick(module)}
-                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-green-50 hover:text-green-700"
                       >
-                        <Box className="w-4 h-4 flex-shrink-0" />
+                        <Box className="w-4 h-4 flex-shrink-0 text-green-600" />
                         <span className="text-sm truncate" title={module.name}>{module.name}</span>
                       </button>
                     ))
@@ -572,10 +861,10 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     dependencies.map((dep) => (
                       <button
                         key={dep.id}
-                        onClick={() => setSelectedDependency(dep)}
-                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                        onClick={() => handleDependencyClick(dep)}
+                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-700"
                       >
-                        <LinkIcon className="w-4 h-4 flex-shrink-0" />
+                        <LinkIcon className="w-4 h-4 flex-shrink-0 text-blue-600" />
                         <span className="text-sm truncate" title={dep.name}>{dep.name}</span>
                       </button>
                     ))
@@ -595,6 +884,13 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
           </div>
 
         </div>
+      {selectedType && analysisId && (
+        <TypeModal
+          typeFqn={selectedType}
+          analysisId={analysisId}
+          onClose={() => setSelectedType(null)}
+        />
+      )}
     </div>
   );
 }
