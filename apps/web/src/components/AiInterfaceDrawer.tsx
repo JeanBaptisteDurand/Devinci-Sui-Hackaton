@@ -48,22 +48,22 @@ const SECTIONS: Record<Section, { title: string; icon: React.ElementType; initia
   summary: {
     title: 'AI Global Summary',
     icon: MessageSquare,
-    initialMessage: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+    initialMessage: 'This section provides a global summary of the analysis. Ask questions to get insights about the overall project structure and logic.'
   },
   package: {
     title: 'Primary Package Analysis',
     icon: Package,
-    initialMessage: 'This section provides an analysis of the primary package. Lorem ipsum dolor sit amet, consectetur adipiscing elit. The package structure appears to be well-organized with clear separation of concerns.'
+    initialMessage: 'This section provides an analysis of the primary package. Ask questions about the package metadata, upgrades, and ownership.'
   },
   modules: {
     title: 'Primary Modules Overview',
     icon: Box,
-    initialMessage: 'Here is an overview of the modules in the primary package. Lorem ipsum dolor sit amet. Module A interacts with Module B through defined interfaces.'
+    initialMessage: 'Here is an overview of the modules in the primary package. Select a module to see details and ask specific questions.'
   },
   dependencies: {
     title: 'Primary Dependencies',
     icon: LinkIcon,
-    initialMessage: 'Analysis of external dependencies. Lorem ipsum dolor sit amet. The project relies on several key external packages for utility functions.'
+    initialMessage: 'Analysis of external dependencies. Select a dependency to explore its modules and understand how it is used.'
   }
 };
 
