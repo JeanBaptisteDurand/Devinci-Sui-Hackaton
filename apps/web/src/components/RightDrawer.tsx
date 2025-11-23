@@ -380,10 +380,10 @@ export default function RightDrawer({ node, edge, graphData, analysisId, network
               {moduleData?.flags && moduleData.flags.length > 0 && (
                 <div>
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">
-                    Security Flags ({moduleData.flags.length})
+                    Security Flags ({Array.from(new Set(moduleData.flags as string[])).length})
                   </label>
                   <div className="space-y-1">
-                    {moduleData.flags.map((flag: string, idx: number) => (
+                    {Array.from(new Set(moduleData.flags as string[])).map((flag: string, idx: number) => (
                       <div key={idx} className="text-xs font-semibold text-red-600 dark:text-red-400 bg-red-500/10 p-2 rounded border border-red-500/20">
                         ⚠️ {flag}
                       </div>
