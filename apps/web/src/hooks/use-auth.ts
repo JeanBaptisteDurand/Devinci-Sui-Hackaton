@@ -6,7 +6,11 @@ const AUTH_MESSAGE = 'Sign this message to authenticate with SuiLens';
 
 interface AuthState {
   token: string | null;
-  user: { id: string; walletAddress: string } | null;
+  user: { 
+    id: string; 
+    walletAddress: string; 
+    authProvider?: 'slush' | 'zklogin' 
+  } | null;
   isLoading: boolean;
 }
 
@@ -105,14 +109,87 @@ export function useAuth() {
     }
   }, [account?.address, signPersonalMessage]);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
-    setAuthState({
-      token: null,
-      user: null,
-      isLoading: false,
-    });
+  const logout = useCallback(async () => {
+    try {
+      // Call backend logout endpoint
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authState.token ? { Authorization: `Bearer ${authState.token}` } : {}),
+        },
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear local state regardless of backend response
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      setAuthState({
+        token: null,
+        user: null,
+        isLoading: false,
+      });
+      
+      toast({
+        title: 'Logged Out',
+        description: 'You have been logged out successfully.',
+      });
+    }
+  }, [authState.token]);
+
+  /**
+   * Login with zkLogin via Enoki
+   */
+  const loginWithZkLogin = useCallback(async (sessionToken: string, address: string) => {
+    setAuthState((prev) => ({ ...prev, isLoading: true }));
+
+    try {
+      // Send zkLogin sessionToken and address to backend for verification and JWT generation
+      const response = await fetch('/api/auth/zklogin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionToken,
+          address,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'zkLogin authentication failed');
+      }
+
+      const data = await response.json();
+
+      // Store token and user info
+      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('auth_user', JSON.stringify(data.user));
+
+      setAuthState({
+        token: data.token,
+        user: data.user,
+        isLoading: false,
+      });
+
+      toast({
+        title: 'Authentication Successful',
+        description: 'You are now authenticated with zkLogin.',
+      });
+
+      return true;
+    } catch (error: any) {
+      console.error('zkLogin authentication error:', error);
+      toast({
+        title: 'zkLogin Failed',
+        description: error.message || 'Failed to authenticate with zkLogin',
+        variant: 'destructive',
+      });
+      setAuthState((prev) => ({ ...prev, isLoading: false }));
+      return false;
+    }
   }, []);
 
   const getAuthHeaders = useCallback(() => {
@@ -135,6 +212,7 @@ export function useAuth() {
   return {
     ...authState,
     login,
+    loginWithZkLogin,
     logout,
     getAuthHeaders,
     ensureAuthenticated,

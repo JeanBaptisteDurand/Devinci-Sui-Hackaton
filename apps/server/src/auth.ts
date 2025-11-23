@@ -13,20 +13,22 @@ export interface AuthRequest extends Request {
   user?: {
     id: string;
     walletAddress: string;
+    authProvider: 'slush' | 'zklogin';
   };
 }
 
 export interface JWTPayload {
   userId: string;
   walletAddress: string;
+  authProvider: 'slush' | 'zklogin';
 }
 
 /**
  * Generate a JWT token for a user
  */
-export function generateToken(userId: string, walletAddress: string): string {
+export function generateToken(userId: string, walletAddress: string, authProvider: 'slush' | 'zklogin' = 'slush'): string {
   return jwt.sign(
-    { userId, walletAddress },
+    { userId, walletAddress, authProvider },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
@@ -44,13 +46,13 @@ export function verifyToken(token: string): JWTPayload | null {
 }
 
 /**
- * Authenticate user with wallet signature
+ * Authenticate user with wallet signature (Slush)
  */
 export async function authenticateWallet(
   walletAddress: string,
   message: string,
   signature: string
-): Promise<{ token: string; user: { id: string; walletAddress: string } } | null> {
+): Promise<{ token: string; user: { id: string; walletAddress: string; authProvider: string } } | null> {
   try {
     // Convert message to bytes
     const messageBytes = new Uint8Array(Buffer.from(message, 'utf-8'));
@@ -94,23 +96,46 @@ export async function authenticateWallet(
     // Find or create user
     let user = await prisma.user.findUnique({
       where: { walletAddress },
+      include: { authAccounts: true }
     });
 
     if (!user) {
       user = await prisma.user.create({
-        data: { walletAddress },
+        data: { 
+          walletAddress,
+          authAccounts: {
+            create: {
+              authProvider: 'slush',
+              suiAddress: walletAddress
+            }
+          }
+        },
+        include: { authAccounts: true }
       });
       logger.info('auth', 'New user created', { userId: user.id, walletAddress });
+    } else {
+      // Check if slush auth account exists
+      const slushAccount = user.authAccounts.find(acc => acc.authProvider === 'slush');
+      if (!slushAccount) {
+        await prisma.userAuthAccount.create({
+          data: {
+            userId: user.id,
+            authProvider: 'slush',
+            suiAddress: walletAddress
+          }
+        });
+      }
     }
 
     // Generate JWT token
-    const token = generateToken(user.id, walletAddress);
+    const token = generateToken(user.id, walletAddress, 'slush');
 
     return {
       token,
       user: {
         id: user.id,
         walletAddress: user.walletAddress,
+        authProvider: 'slush'
       },
     };
   } catch (error: any) {
@@ -139,6 +164,7 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
   req.user = {
     id: payload.userId,
     walletAddress: payload.walletAddress,
+    authProvider: payload.authProvider,
   };
 
   next();
@@ -158,6 +184,7 @@ export function optionalAuth(req: AuthRequest, res: Response, next: NextFunction
       req.user = {
         id: payload.userId,
         walletAddress: payload.walletAddress,
+        authProvider: payload.authProvider,
       };
     }
   }

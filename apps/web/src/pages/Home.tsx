@@ -6,6 +6,7 @@ import { SubscriptionCard } from '@/components/SubscriptionCard';
 import { SubscriptionTier } from '@/config/sui';
 import { useSubscription } from '@/hooks/use-subscription';
 import { useSuiTransactions } from '@/hooks/use-sui-transactions';
+import { useSponsoredTransactions } from '@/hooks/use-sponsored-transactions';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
 
@@ -14,7 +15,8 @@ export function Home() {
   const navigate = useNavigate();
   const { subscription, hasSubscription, tokenBalance, hasTokens, refetch } = useSubscription();
   const { analyzeText } = useSuiTransactions();
-  const { ensureAuthenticated, getAuthHeaders, isAuthenticated } = useAuth();
+  const { analyzeTextSponsored } = useSponsoredTransactions();
+  const { ensureAuthenticated, getAuthHeaders, isAuthenticated, user } = useAuth();
   const [packageId, setPackageId] = useState('');
   const [maxPkgDepth, setMaxPkgDepth] = useState(2); // Default: analyze 2 levels deep
   const [loading, setLoading] = useState(false);
@@ -131,15 +133,25 @@ export function Home() {
       logger.debug('Home', 'Sending blockchain transaction', {
         packageId: packageId.trim(),
         subscriptionId: subscription.id,
+        authProvider: user?.authProvider,
       });
 
       toast({
         title: 'Sending Transaction',
-        description: 'Submitting analysis request to blockchain...',
+        description: user?.authProvider === 'zklogin' 
+          ? 'Submitting sponsored transaction...'
+          : 'Submitting analysis request to blockchain...',
       });
 
-      const txResult = await analyzeText(packageId.trim(), subscription.id, maxPkgDepth);
-      logger.info('Home', 'Blockchain transaction complete', { digest: txResult.digest });
+      // Use sponsored transaction for zkLogin users, regular transaction for Slush users
+      const txResult = user?.authProvider === 'zklogin'
+        ? await analyzeTextSponsored(packageId.trim(), subscription.id, maxPkgDepth)
+        : await analyzeText(packageId.trim(), subscription.id, maxPkgDepth);
+        
+      logger.info('Home', 'Blockchain transaction complete', { 
+        digest: txResult.digest,
+        authProvider: user?.authProvider 
+      });
       console.log('✅ Blockchain transaction complete!');
       console.log('📋 Transaction:', txResult.digest);
 

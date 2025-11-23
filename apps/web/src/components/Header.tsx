@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ConnectButton } from '@mysten/dapp-kit';
+import { EnokiLoginButton } from '@/components/EnokiLoginButton';
 import { Button } from '@/components/ui/button';
 
 export function Header() {
@@ -23,8 +24,21 @@ export function Header() {
               </Link>
             </nav>
           </div>
-          <div>
-            <ConnectButton />
+          <div className="flex items-center gap-4">
+            {/* Slush Wallet (Self-custodial) */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">Self-Custodial:</span>
+              <ConnectButton />
+            </div>
+            
+            {/* Divider */}
+            <div className="h-8 w-px bg-gray-300" />
+            
+            {/* Google zkLogin */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-500">zkLogin:</span>
+              <EnokiLoginButton />
+            </div>
           </div>
         </div>
       </div>

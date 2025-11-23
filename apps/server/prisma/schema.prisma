@@ -12,13 +12,30 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  walletAddress String @unique // Sui wallet address
+  walletAddress String @unique // Sui wallet address - for backward compatibility (deprecated)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   analyses Analysis[]
+  authAccounts UserAuthAccount[]
 
   @@index([walletAddress])
+}
+
+model UserAuthAccount {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  authProvider String   // "slush" | "zklogin"
+  suiAddress   String   // Sui wallet address
+  externalId   String?  // Google sub, or other provider identifier
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, authProvider])
+  @@unique([authProvider, suiAddress])
+  @@index([userId])
+  @@index([authProvider])
+  @@index([suiAddress])
 }
 
 model Analysis {

@@ -9,6 +9,7 @@ import { getSuiClient } from './sui.js';
 import type { GraphData } from '@suilens/core';
 import type { Network } from './sui.js';
 import { requireAuth, optionalAuth, type AuthRequest } from './auth.js';
+import { createSponsoredTransaction } from './zklogin.js';
 
 const router = Router();
 
@@ -1156,6 +1157,178 @@ router.get('/analysis/:analysisId/global-summary', async (req, res) => {
       error: error.message,
     });
     res.status(500).json({ error: error.message || 'Failed to get global summary' });
+  }
+});
+
+// ============================================================================
+// zkLogin Sponsored Transaction Route
+// ============================================================================
+
+/**
+ * POST /api/tx/create-sponsored
+ * Create a sponsored transaction for analyze_Package
+ * Based on working Enoki example
+ */
+router.post('/tx/create-sponsored', async (req, res) => {
+  try {
+    const { sender, packageId, transactionKindBytes } = req.body;
+
+    if (!sender || !packageId || !transactionKindBytes) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: sender, packageId, transactionKindBytes' 
+      });
+    }
+
+    logger.info('zklogin', 'Creating sponsored transaction', { sender, packageId });
+
+    const result = await createSponsoredTransaction(sender, transactionKindBytes, packageId);
+
+    if (!result) {
+      return res.status(500).json({ 
+        error: 'Failed to create sponsored transaction' 
+      });
+    }
+
+    logger.info('zklogin', 'Sponsored transaction created', { 
+      digest: result.digest 
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    logger.error('zklogin', 'Create sponsored transaction error', { 
+      error: error.message,
+      stack: error.stack 
+    });
+    res.status(500).json({ 
+      error: error.message || 'Failed to create sponsored transaction' 
+    });
+  }
+});
+
+/**
+ * POST /api/tx/execute-sponsored
+ * Execute a sponsored transaction after client signing
+ */
+router.post('/tx/execute-sponsored', async (req, res) => {
+  try {
+    const { bytes, signature } = req.body;
+
+    if (!bytes || !signature) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: bytes, signature' 
+      });
+    }
+
+    logger.info('zklogin', 'Executing sponsored transaction');
+
+    const { executeSponsoredTransaction } = await import('./zklogin.js');
+    const result = await executeSponsoredTransaction(bytes, signature);
+
+    if (!result) {
+      return res.status(500).json({ 
+        error: 'Failed to execute sponsored transaction' 
+      });
+    }
+
+    logger.info('zklogin', 'Sponsored transaction executed', { 
+      digest: result.digest 
+    });
+
+    res.json(result);
+  } catch (error: any) {
+    logger.error('zklogin', 'Execute sponsored transaction error', { 
+      error: error.message,
+      stack: error.stack 
+    });
+    res.status(500).json({ 
+      error: error.message || 'Failed to execute sponsored transaction' 
+    });
+  }
+});
+
+/**
+ * POST /api/tx/submit-sponsored
+ * Submit a sponsored transaction (for zkLogin users only)
+ * Requires JWT with auth_provider = "zklogin"
+ * Body: { txBytes, signature }
+ */
+router.post('/tx/submit-sponsored', requireAuth, async (req: AuthRequest, res) => {
+  try {
+    // Verify user is authenticated with zkLogin
+    if (!req.user || req.user.authProvider !== 'zklogin') {
+      return res.status(403).json({ 
+        error: 'Sponsored transactions are only available for zkLogin users' 
+      });
+    }
+
+    const { txBytes, signature } = req.body;
+
+    if (!txBytes || !signature) {
+      return res.status(400).json({ 
+        error: 'Missing required fields: txBytes, signature' 
+      });
+    }
+
+    logger.info('zklogin', 'Submitting sponsored transaction', { 
+      userId: req.user.id,
+      address: req.user.walletAddress 
+    });
+
+    // Convert base64 txBytes back to Uint8Array
+    const transactionKindBytes = Buffer.from(txBytes, 'base64');
+
+    // Get package ID from the transaction (we need to extract it)
+    // For now, we'll use a default or extract from transaction
+    // This should match the package ID configured in Enoki portal
+    const PACKAGE_ID = process.env.SUI_PACKAGE_ID || '0xa5b2c6925'; // Default, should be configured
+
+    // Create sponsored transaction
+    const { createSponsoredTransaction, executeSponsoredTransaction } = await import('./zklogin.js');
+    
+    const sponsored = await createSponsoredTransaction(
+      req.user.walletAddress,
+      transactionKindBytes.toString('base64'),
+      PACKAGE_ID
+    );
+
+    if (!sponsored) {
+      return res.status(500).json({ 
+        error: 'Failed to create sponsored transaction' 
+      });
+    }
+
+    // Execute the sponsored transaction with the client's signature
+    // Note: The signature from the client is for the original transaction
+    // Enoki will handle combining it with the sponsorship
+    const result = await executeSponsoredTransaction(
+      sponsored.bytes,
+      signature
+    );
+
+    if (!result) {
+      return res.status(500).json({ 
+        error: 'Failed to execute sponsored transaction' 
+      });
+    }
+
+    logger.info('zklogin', 'Sponsored transaction submitted successfully', { 
+      digest: result.digest,
+      userId: req.user.id 
+    });
+
+    res.json({
+      digest: result.digest,
+      status: 'success'
+    });
+  } catch (error: any) {
+    logger.error('zklogin', 'Submit sponsored transaction error', { 
+      error: error.message,
+      stack: error.stack,
+      userId: req.user?.id 
+    });
+    res.status(500).json({ 
+      error: error.message || 'Failed to submit sponsored transaction' 
+    });
   }
 });
 

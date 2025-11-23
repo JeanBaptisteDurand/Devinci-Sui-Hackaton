@@ -11,6 +11,7 @@
     "db:generate": "prisma generate"
   },
   "dependencies": {
+    "@mysten/enoki": "^0.3.7",
     "@mysten/sui": "^1.38.0",
     "@prisma/client": "^5.7.1",
     "@suilens/core": "workspace:*",
