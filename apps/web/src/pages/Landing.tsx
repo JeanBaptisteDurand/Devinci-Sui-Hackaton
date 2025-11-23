@@ -23,7 +23,7 @@ export function Landing() {
         setTextIndex((prev) => (prev + 1) % ROTATING_TEXTS.length);
         setFade(true);
       }, 500); // Wait for fade out before changing text
-    }, 4000);
+    }, 8000);
 
     return () => clearInterval(interval);
   }, []);
