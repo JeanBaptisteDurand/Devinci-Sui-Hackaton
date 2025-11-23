@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import { ConnectButton } from '@mysten/dapp-kit';
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from './mode-toggle';
+import lightLogo from '@/assets/light_mode_logo.svg';
+import darkLogo from '@/assets/dark_mode_logo.svg';
 
 export function Header() {
   return (
@@ -12,12 +14,12 @@ export function Header() {
             <Link to="/" className="flex items-center space-x-2">
               <div className="h-8 w-8">
                 <img 
-                  src="/light_mode_logo.svg" 
+                  src={lightLogo} 
                   alt="SuiLens Logo" 
                   className="h-full w-full object-contain dark:hidden" 
                 />
                 <img 
-                  src="/dark_mode_logo.svg" 
+                  src={darkLogo} 
                   alt="SuiLens Logo" 
                   className="h-full w-full object-contain hidden dark:block" 
                 />

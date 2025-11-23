@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Brain, Network, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import lightLogo from '@/assets/light_mode_logo.svg';
+import darkLogo from '@/assets/dark_mode_logo.svg';
 
 const ROTATING_TEXTS = [
   "You could see the blockchain, now understand it.",
@@ -36,12 +38,12 @@ export function Landing() {
         {/* Logo */}
         <div className="w-32 h-32 mb-8 animate-in fade-in zoom-in duration-1000">
           <img 
-            src="/light_mode_logo.svg" 
+            src={lightLogo} 
             alt="SuiLens Logo" 
             className="w-full h-full object-contain dark:hidden" 
           />
           <img 
-            src="/dark_mode_logo.svg" 
+            src={darkLogo} 
             alt="SuiLens Logo" 
             className="w-full h-full object-contain hidden dark:block" 
           />
