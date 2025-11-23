@@ -106,7 +106,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, network
     ? graphData?.packages?.find((p) => p.id === node.id)
     : null;
   const packageModules = isPackage && packageData
-    ? graphData?.modules?.filter((m) => m.package === packageData.address) || []
+    ? graphData?.modules?.filter((m) => m.package === packageData.id) || []
     : [];
 
   const handleFunctionClick = (func: { name: string; visibility: string; isEntry: boolean }) => {
