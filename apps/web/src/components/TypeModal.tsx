@@ -58,36 +58,36 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-white rounded-lg shadow-2xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col overflow-hidden"
+        className="bg-card rounded-lg shadow-2xl max-w-3xl w-full mx-4 max-h-[80vh] flex flex-col overflow-hidden border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-6 py-4 flex justify-between items-center flex-shrink-0">
+        <div className="bg-primary text-primary-foreground px-6 py-4 flex justify-between items-center flex-shrink-0">
           <h2 className="text-xl font-bold">Type Details</h2>
           <button
             onClick={onClose}
-            className="text-white hover:text-gray-200 text-2xl font-bold"
+            className="text-primary-foreground hover:text-primary-foreground/80 text-2xl font-bold"
           >
             ×
           </button>
         </div>
 
         {/* Content - scrollable area */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-6 overflow-y-auto flex-1 bg-card">
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
           ) : typeDetails ? (
             <div className="space-y-6">
               {/* FQN */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                   Fully Qualified Name
                 </h3>
-                <code className="block bg-gray-100 px-3 py-2 rounded text-sm break-all">
+                <code className="block bg-muted px-3 py-2 rounded text-sm break-all text-foreground">
                   {typeDetails.type.fqn}
                 </code>
               </div>
@@ -95,14 +95,14 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
               {/* Abilities & Badges */}
               <div className="flex flex-wrap gap-2">
                 {typeDetails.type.hasKey && (
-                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                  <span className="px-3 py-1 bg-green-500/20 text-green-700 dark:text-green-300 rounded-full text-sm font-medium">
                     has key
                   </span>
                 )}
                 {typeDetails.type.abilities?.map((ability) => (
                   <span
                     key={ability}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+                    className="px-3 py-1 bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium"
                   >
                     {ability}
                   </span>
@@ -111,10 +111,10 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
 
               {/* Defined By */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                   Defined By Module
                 </h3>
-                <code className="block bg-gray-100 px-3 py-2 rounded text-sm">
+                <code className="block bg-muted px-3 py-2 rounded text-sm text-foreground">
                   {typeDetails.definedBy}
                 </code>
               </div>
@@ -122,19 +122,19 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
               {/* Types Used (Child types that this type uses) */}
               {typeDetails.usesTypes && typeDetails.usesTypes.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                     Types Used ({typeDetails.usesTypes.length})
                   </h3>
                   <div className="space-y-2">
                     {typeDetails.usesTypes.map((typeFqn, idx) => (
-                      <div key={idx} className="bg-pink-50 px-3 py-2 rounded border border-pink-300">
-                        <code className="text-xs text-pink-800 font-mono break-all">
+                      <div key={idx} className="bg-pink-500/10 px-3 py-2 rounded border border-pink-500/30">
+                        <code className="text-xs text-pink-700 dark:text-pink-300 font-mono break-all">
                           {typeFqn}
                         </code>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 italic">
+                  <p className="text-xs text-muted-foreground mt-2 italic">
                     These types are used as fields in this type (struct composition)
                   </p>
                 </div>
@@ -143,28 +143,28 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
               {/* Fields */}
               {typeDetails.type.fields && typeDetails.type.fields.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                     Fields ({typeDetails.type.fields.length})
                   </h3>
-                  <div className="bg-gray-50 rounded-lg overflow-hidden">
+                  <div className="bg-muted/50 rounded-lg overflow-hidden border border-border">
                     <table className="w-full">
-                      <thead className="bg-gray-200">
+                      <thead className="bg-muted">
                         <tr>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                          <th className="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">
                             Name
                           </th>
-                          <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">
+                          <th className="px-4 py-2 text-left text-sm font-semibold text-muted-foreground">
                             Type
                           </th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-border">
                         {typeDetails.type.fields.map((field, idx) => (
-                          <tr key={idx} className="hover:bg-gray-100">
-                            <td className="px-4 py-2 text-sm font-mono text-gray-800">
+                          <tr key={idx} className="hover:bg-muted/80">
+                            <td className="px-4 py-2 text-sm font-mono text-foreground">
                               {field.name}
                             </td>
-                            <td className="px-4 py-2 text-sm font-mono text-gray-600">
+                            <td className="px-4 py-2 text-sm font-mono text-muted-foreground">
                               {field.type}
                             </td>
                           </tr>
@@ -177,12 +177,12 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
 
               {/* Object Discovery Status */}
               {typeDetails.type.hasKey && typeDetails.stats?.count !== undefined && typeDetails.stats.count > 0 && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
                   <div className="flex items-start gap-2">
-                    <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <div className="text-sm text-blue-800">
+                    <div className="text-sm text-blue-700 dark:text-blue-300">
                       <span><strong>{typeDetails.stats.count}</strong> object(s) found on-chain for this type</span>
                     </div>
                   </div>
@@ -192,40 +192,40 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
               {/* Stats */}
               {typeDetails.stats && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                     On-chain Statistics
                   </h3>
                   <div className="grid grid-cols-2 gap-4">
                     {typeDetails.stats.count !== undefined && (
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-700">
+                      <div className="bg-blue-500/10 p-4 rounded-lg border border-blue-500/20">
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                           {typeDetails.stats.count.toLocaleString()}
                         </div>
-                        <div className="text-sm text-gray-600">Total Objects</div>
+                        <div className="text-sm text-muted-foreground">Total Objects</div>
                       </div>
                     )}
                     {typeDetails.stats.owners !== undefined && (
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-green-700">
+                      <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                           {typeDetails.stats.owners.toLocaleString()}
                         </div>
-                        <div className="text-sm text-gray-600">Unique Owners</div>
+                        <div className="text-sm text-muted-foreground">Unique Owners</div>
                       </div>
                     )}
                     {typeDetails.stats.shared !== undefined && (
-                      <div className="bg-purple-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-purple-700">
+                      <div className="bg-purple-500/10 p-4 rounded-lg border border-purple-500/20">
+                        <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                           {typeDetails.stats.shared.toLocaleString()}
                         </div>
-                        <div className="text-sm text-gray-600">Shared Objects</div>
+                        <div className="text-sm text-muted-foreground">Shared Objects</div>
                       </div>
                     )}
                     {typeDetails.stats.sampled !== undefined && (
-                      <div className="bg-orange-50 p-4 rounded-lg">
-                        <div className="text-2xl font-bold text-orange-700">
+                      <div className="bg-orange-500/10 p-4 rounded-lg border border-orange-500/20">
+                        <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                           {typeDetails.stats.sampled.toLocaleString()}
                         </div>
-                        <div className="text-sm text-gray-600">Sampled</div>
+                        <div className="text-sm text-muted-foreground">Sampled</div>
                       </div>
                     )}
                   </div>
@@ -235,13 +235,13 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
               {/* Sample Objects */}
               {typeDetails.samples && typeDetails.samples.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                     Sample Objects ({typeDetails.samples.length})
                   </h3>
                   <div className="space-y-2">
                     {typeDetails.samples.map((objectId, idx) => (
-                      <div key={idx} className="bg-gray-50 px-3 py-2 rounded">
-                        <code className="text-xs text-gray-700 break-all">
+                      <div key={idx} className="bg-muted px-3 py-2 rounded">
+                        <code className="text-xs text-muted-foreground break-all">
                           {objectId}
                         </code>
                       </div>
@@ -251,18 +251,18 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
               )}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               Failed to load type details
             </div>
           )}
         </div>
 
         {/* Footer - always visible at bottom */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-between items-center border-t flex-shrink-0">
+        <div className="bg-muted/50 px-6 py-4 flex justify-between items-center border-t border-border flex-shrink-0">
           {typeDetails?.type.hasKey && (
             <button
               onClick={handleViewObjects}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors flex items-center gap-2"
               title="View objects of this type"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,7 +273,7 @@ export default function TypeModal({ typeFqn, analysisId, onClose }: TypeModalPro
           )}
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors ml-auto"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80 transition-colors ml-auto"
           >
             Close
           </button>

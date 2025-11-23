@@ -82,49 +82,49 @@ export default function ExplanationModal({ type, id, name, onClose, hasModules }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-card rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col border border-border">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-2xl font-bold text-foreground">
               {type === 'module' ? '📦 Module' : '🎯 Package'} Explanation
             </h2>
-            <p className="text-sm text-gray-600 mt-1 font-mono">{name}</p>
+            <p className="text-sm text-muted-foreground mt-1 font-mono">{name}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-3xl font-bold leading-none"
+            className="text-muted-foreground hover:text-foreground text-3xl font-bold leading-none"
           >
             ×
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-card">
           {type === 'package' && hasModules === false ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📦</div>
-              <p className="text-gray-600 text-lg font-medium">
+              <p className="text-muted-foreground text-lg font-medium">
                 Not analyzed, dependency of a dependency.
               </p>
             </div>
           ) : loading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading explanation...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading explanation...</p>
               </div>
             </div>
           ) : error ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800 font-medium">❌ Error</p>
-              <p className="text-red-600 text-sm mt-1">{error}</p>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+              <p className="text-destructive font-medium">❌ Error</p>
+              <p className="text-destructive/80 text-sm mt-1">{error}</p>
             </div>
           ) : explanation ? (
             <div className="prose prose-sm max-w-none">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+              <div className="bg-primary/10 border border-primary/20 rounded-lg p-6">
+                <div className="whitespace-pre-wrap text-foreground leading-relaxed">
                   {explanation}
                 </div>
               </div>
@@ -132,13 +132,13 @@ export default function ExplanationModal({ type, id, name, onClose, hasModules }
           ) : (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🤖</div>
-              <p className="text-gray-600 mb-6">
+              <p className="text-muted-foreground mb-6">
                 No explanation available yet. Generate one using AI?
               </p>
               <button
                 onClick={() => generateExplanation(false)}
                 disabled={generating}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {generating ? (
                   <>
@@ -155,17 +155,17 @@ export default function ExplanationModal({ type, id, name, onClose, hasModules }
 
         {/* Footer */}
         {explanation && (
-          <div className="border-t border-gray-200 p-4 bg-gray-50 flex justify-between items-center">
+          <div className="border-t border-border p-4 bg-muted/50 flex justify-between items-center">
             <button
               onClick={() => generateExplanation(true)}
               disabled={generating}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-secondary-foreground text-sm font-medium rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {generating ? 'Regenerating...' : '🔄 Regenerate'}
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors"
+              className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-medium rounded transition-colors"
             >
               Close
             </button>

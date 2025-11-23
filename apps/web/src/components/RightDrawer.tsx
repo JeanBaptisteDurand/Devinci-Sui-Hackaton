@@ -125,14 +125,14 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
 
   return (
     <>
-      <div className="absolute right-0 top-0 h-full w-80 bg-white shadow-xl z-10 overflow-y-auto">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
-          <h2 className="text-lg font-semibold text-gray-800">
+      <div className="absolute right-0 top-0 h-full w-80 bg-card shadow-xl z-10 overflow-y-auto border-l border-border">
+        <div className="p-4 border-b border-border flex justify-between items-center bg-muted/50">
+          <h2 className="text-lg font-semibold text-foreground">
             {isPackage ? 'Package Details' : 'Module Details'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-xl font-bold"
+            className="text-muted-foreground hover:text-foreground text-xl font-bold"
           >
             ×
           </button>
@@ -142,8 +142,8 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
           {isPackage ? (
             <>
               <div>
-                <label className="text-sm font-medium text-gray-500">Address</label>
-                <p className="mt-1 text-sm font-mono text-gray-900 break-all bg-gray-50 p-2 rounded">
+                <label className="text-sm font-medium text-muted-foreground">Address</label>
+                <p className="mt-1 text-sm font-mono text-foreground break-all bg-muted p-2 rounded">
                   {nodeData.address}
                 </p>
               </div>
@@ -151,24 +151,24 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
               {/* Stats */}
               {nodeData.stats && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">Statistics</label>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">Statistics</label>
                   <div className="grid grid-cols-3 gap-2">
                     {nodeData.stats.modules !== undefined && (
-                      <div className="bg-green-50 p-2 rounded text-center">
-                        <div className="text-xs text-green-600">Modules</div>
-                        <div className="text-lg font-bold text-green-900">{nodeData.stats.modules}</div>
+                      <div className="bg-green-500/10 p-2 rounded text-center">
+                        <div className="text-xs text-green-600 dark:text-green-400">Modules</div>
+                        <div className="text-lg font-bold text-green-700 dark:text-green-300">{nodeData.stats.modules}</div>
                       </div>
                     )}
                     {nodeData.stats.types !== undefined && (
-                      <div className="bg-violet-50 p-2 rounded text-center">
-                        <div className="text-xs text-violet-600">Types</div>
-                        <div className="text-lg font-bold text-violet-900">{nodeData.stats.types}</div>
+                      <div className="bg-violet-500/10 p-2 rounded text-center">
+                        <div className="text-xs text-violet-600 dark:text-violet-400">Types</div>
+                        <div className="text-lg font-bold text-violet-700 dark:text-violet-300">{nodeData.stats.types}</div>
                       </div>
                     )}
                     {nodeData.stats.recentEvents !== undefined && (
-                      <div className="bg-yellow-50 p-2 rounded text-center">
-                        <div className="text-xs text-yellow-600">Events</div>
-                        <div className="text-lg font-bold text-yellow-900">{nodeData.stats.recentEvents}</div>
+                      <div className="bg-yellow-500/10 p-2 rounded text-center">
+                        <div className="text-xs text-yellow-600 dark:text-yellow-400">Events</div>
+                        <div className="text-lg font-bold text-yellow-700 dark:text-yellow-300">{nodeData.stats.recentEvents}</div>
                       </div>
                     )}
                   </div>
@@ -193,7 +193,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
 
               {/* Explorer Links */}
               <div>
-                <label className="text-sm font-medium text-gray-500 mb-2 block">View on Explorers</label>
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">View on Explorers</label>
                 <div className="space-y-2">
                   <a
                     href={suiscanPackageUrl(nodeData.address)}
@@ -216,14 +216,14 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
 
               {packageModules.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Modules ({packageModules.length})
                   </label>
                   <div className="space-y-2">
                     {packageModules.map((mod) => (
                       <div
                         key={mod.id}
-                        className="text-sm font-mono text-gray-700 bg-gray-50 p-2 rounded"
+                        className="text-sm font-mono text-foreground bg-muted p-2 rounded"
                       >
                         {mod.name}
                       </div>
@@ -235,14 +235,14 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
           ) : (
             <>
               <div>
-                <label className="text-sm font-medium text-gray-500">Module Name</label>
-                <p className="mt-1 text-sm font-mono text-gray-900 bg-gray-50 p-2 rounded">
+                <label className="text-sm font-medium text-muted-foreground">Module Name</label>
+                <p className="mt-1 text-sm font-mono text-foreground bg-muted p-2 rounded">
                   {moduleData?.name || nodeData.moduleName}
                 </p>
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-500">Full Name</label>
-                <p className="mt-1 text-xs font-mono text-gray-700 break-all bg-gray-50 p-2 rounded">
+                <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                <p className="mt-1 text-xs font-mono text-muted-foreground break-all bg-muted p-2 rounded">
                   {moduleData?.fullName || nodeData.fullName}
                 </p>
               </div>
@@ -250,12 +250,12 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
               {/* Friends */}
               {moduleData?.friends && moduleData.friends.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Friend Modules ({moduleData.friends.length})
                   </label>
                   <div className="space-y-1">
                     {moduleData.friends.map((friend: string, idx: number) => (
-                      <div key={idx} className="text-xs font-mono text-orange-700 bg-orange-50 p-2 rounded border border-orange-200">
+                      <div key={idx} className="text-xs font-mono text-orange-600 dark:text-orange-400 bg-orange-500/10 p-2 rounded border border-orange-500/20">
                         {friend}
                       </div>
                     ))}
@@ -279,13 +279,13 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
 
                 return (
                   <div>
-                    <label className="text-sm font-medium text-gray-500 mb-2 block">
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">
                       📞 Calls to Modules ({callEdges.length})
                     </label>
                     <div className="space-y-2">
                       {friendCalls.length > 0 && (
                         <div>
-                          <div className="text-xs font-semibold text-green-700 mb-1">
+                          <div className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1">
                             🟢 Friend Modules ({friendCalls.length})
                           </div>
                           <div className="space-y-1">
@@ -295,7 +295,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
                               return (
                                 <div
                                   key={idx}
-                                  className="text-xs font-mono text-green-700 bg-green-50 px-2 py-1 rounded border border-green-200"
+                                  className="text-xs font-mono text-green-600 dark:text-green-400 bg-green-500/10 px-2 py-1 rounded border border-green-500/20"
                                   title={targetModule}
                                 >
                                   {simpleName}
@@ -308,7 +308,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
 
                       {samePackageCalls.length > 0 && (
                         <div>
-                          <div className="text-xs font-semibold text-blue-700 mb-1">
+                          <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">
                             🔵 Same Package ({samePackageCalls.length})
                           </div>
                           <div className="space-y-1">
@@ -318,7 +318,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
                               return (
                                 <div
                                   key={idx}
-                                  className="text-xs font-mono text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-200"
+                                  className="text-xs font-mono text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-1 rounded border border-blue-500/20"
                                   title={targetModule}
                                 >
                                   {simpleName}
@@ -331,7 +331,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
 
                       {externalCalls.length > 0 && (
                         <div>
-                          <div className="text-xs font-semibold text-red-700 mb-1">
+                          <div className="text-xs font-semibold text-red-600 dark:text-red-400 mb-1">
                             🔴 External Packages ({externalCalls.length})
                           </div>
                           <div className="space-y-1">
@@ -341,7 +341,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
                               return (
                                 <div
                                   key={idx}
-                                  className="text-xs font-mono text-red-700 bg-red-50 px-2 py-1 rounded border border-red-200"
+                                  className="text-xs font-mono text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-1 rounded border border-red-500/20"
                                   title={targetModule}
                                 >
                                   {simpleName}
@@ -359,14 +359,14 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
               {/* Constants */}
               {moduleData?.constants && moduleData.constants.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Constants ({moduleData.constants.length})
                   </label>
                   <div className="space-y-2">
                     {moduleData.constants.map((constant: any, idx: number) => (
-                      <div key={idx} className="bg-blue-50 p-2 rounded border border-blue-200">
-                        <div className="font-mono text-xs font-semibold text-blue-900">{constant.name}</div>
-                        <div className="font-mono text-xs text-blue-700 mt-1">
+                      <div key={idx} className="bg-blue-500/10 p-2 rounded border border-blue-500/20">
+                        <div className="font-mono text-xs font-semibold text-blue-700 dark:text-blue-300">{constant.name}</div>
+                        <div className="font-mono text-xs text-blue-600 dark:text-blue-400 mt-1">
                           {constant.type}: {JSON.stringify(constant.value)}
                         </div>
                       </div>
@@ -378,12 +378,12 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
               {/* Flags */}
               {moduleData?.flags && moduleData.flags.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Security Flags ({moduleData.flags.length})
                   </label>
                   <div className="space-y-1">
                     {moduleData.flags.map((flag: string, idx: number) => (
-                      <div key={idx} className="text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200">
+                      <div key={idx} className="text-xs font-semibold text-red-600 dark:text-red-400 bg-red-500/10 p-2 rounded border border-red-500/20">
                         ⚠️ {flag}
                       </div>
                     ))}
@@ -394,7 +394,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
               {/* Types Defined */}
               {moduleData?.typesDefined && moduleData.typesDefined.length > 0 && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Types Defined ({moduleData.typesDefined.length})
                   </label>
                   <div className="space-y-1">
@@ -402,7 +402,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
                       <button
                         key={idx}
                         onClick={() => setSelectedType(type)}
-                        className="w-full text-left text-xs font-mono text-violet-700 bg-violet-50 p-2 rounded border border-violet-200 hover:bg-violet-100 hover:border-violet-300 transition-colors cursor-pointer"
+                        className="w-full text-left text-xs font-mono text-violet-600 dark:text-violet-400 bg-violet-500/10 p-2 rounded border border-violet-500/20 hover:bg-violet-500/20 hover:border-violet-500/40 transition-colors cursor-pointer"
                       >
                         {type.split('::').pop()}
                       </button>
@@ -431,7 +431,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
               {/* Explorer Links */}
               {moduleData && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">View Code</label>
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">View Code</label>
                   <div className="space-y-2">
                     <a
                       href={suiscanModuleUrl(moduleData.package, moduleData.name)}
@@ -474,7 +474,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
 
               {moduleData && (
                 <div>
-                  <label className="text-sm font-medium text-gray-500 mb-2 block">
+                  <label className="text-sm font-medium text-muted-foreground mb-2 block">
                     Functions ({moduleData.functions.length})
                   </label>
                   <ModulePanel

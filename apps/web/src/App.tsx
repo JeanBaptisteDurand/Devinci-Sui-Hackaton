@@ -9,6 +9,8 @@ import GraphView from './pages/GraphView';
 import { History } from './pages/History';
 import { Toaster } from './components/ui/toaster';
 import '@mysten/dapp-kit/dist/index.css';
+import { Landing } from './pages/Landing';
+import { ThemeProvider } from './components/theme-provider';
 
 const queryClient = new QueryClient();
 
@@ -21,17 +23,20 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <SuiClientProvider networks={networks} defaultNetwork="testnet">
         <WalletProvider autoConnect>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
-                <Route path="profile" element={<Profile />} />
-                <Route path="history" element={<History />} />
-                <Route path="graph/:id" element={<GraphView />} />
-              </Route>
-            </Routes>
-            <Toaster />
-          </BrowserRouter>
+          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Layout />}>
+                  <Route index element={<Landing />} />
+                  <Route path="home" element={<Home />} />
+                  <Route path="profile" element={<Profile />} />
+                  <Route path="history" element={<History />} />
+                  <Route path="graph/:id" element={<GraphView />} />
+                </Route>
+              </Routes>
+              <Toaster />
+            </BrowserRouter>
+          </ThemeProvider>
         </WalletProvider>
       </SuiClientProvider>
     </QueryClientProvider>

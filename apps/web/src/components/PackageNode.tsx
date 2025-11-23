@@ -23,10 +23,10 @@ function PackageNode({ data }: NodeProps<PackageNodeData>) {
     : displayLabel;
 
   // Determine colors based on primary status
-  const bgColor = data.isPrimary ? 'bg-yellow-400' : 'bg-blue-500';
-  const borderColor = data.isPrimary ? 'border-yellow-600' : 'border-blue-700';
-  const textColor = data.isPrimary ? 'text-gray-900' : 'text-white';
-  const statsColor = data.isPrimary ? 'text-gray-700' : 'text-blue-100';
+  const bgColor = data.isPrimary ? 'bg-yellow-400 dark:bg-yellow-600' : 'bg-blue-500 dark:bg-blue-700';
+  const borderColor = data.isPrimary ? 'border-yellow-600 dark:border-yellow-400' : 'border-blue-700 dark:border-blue-500';
+  const textColor = data.isPrimary ? 'text-gray-900 dark:text-white' : 'text-white dark:text-white';
+  const statsColor = data.isPrimary ? 'text-gray-700 dark:text-gray-200' : 'text-blue-100 dark:text-blue-200';
 
   return (
     <div className={`px-6 py-4 shadow-xl rounded-full ${bgColor} border-3 ${borderColor} ${textColor} min-w-[180px] max-w-[280px]`}>
@@ -34,7 +34,7 @@ function PackageNode({ data }: NodeProps<PackageNodeData>) {
       
       <div className="flex flex-col items-center gap-1.5">
         {data.isPrimary && (
-          <div className="text-xs font-bold uppercase tracking-wider mb-1 text-gray-700">
+          <div className="text-xs font-bold uppercase tracking-wider mb-1 text-gray-700 dark:text-gray-200">
             Primary
           </div>
         )}

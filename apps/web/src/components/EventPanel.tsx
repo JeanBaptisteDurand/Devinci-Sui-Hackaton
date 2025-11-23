@@ -12,24 +12,24 @@ export default function EventPanel({ node, onClose }: EventPanelProps) {
   const tx = eventId.split(':')[0];
 
   const kindColors: Record<string, { bg: string; text: string }> = {
-    Publish: { bg: 'bg-green-100', text: 'text-green-800' },
-    Upgrade: { bg: 'bg-blue-100', text: 'text-blue-800' },
-    Mint: { bg: 'bg-purple-100', text: 'text-purple-800' },
-    Burn: { bg: 'bg-red-100', text: 'text-red-800' },
-    Custom: { bg: 'bg-gray-100', text: 'text-gray-800' },
+    Publish: { bg: 'bg-green-500/10', text: 'text-green-700 dark:text-green-300' },
+    Upgrade: { bg: 'bg-blue-500/10', text: 'text-blue-700 dark:text-blue-300' },
+    Mint: { bg: 'bg-purple-500/10', text: 'text-purple-700 dark:text-purple-300' },
+    Burn: { bg: 'bg-red-500/10', text: 'text-red-700 dark:text-red-300' },
+    Custom: { bg: 'bg-gray-500/10', text: 'text-gray-700 dark:text-gray-300' },
   };
 
   const colors = kindColors[kind] || kindColors.Custom;
 
   return (
-    <div className="w-96 h-full bg-white shadow-2xl border-l border-gray-200 overflow-y-auto">
+    <div className="w-96 h-full bg-card shadow-2xl border-l border-border overflow-y-auto">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Event Details</h2>
+          <h2 className="text-2xl font-bold text-foreground">Event Details</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+            className="text-muted-foreground hover:text-foreground text-2xl font-bold"
           >
             ×
           </button>
@@ -44,8 +44,8 @@ export default function EventPanel({ node, onClose }: EventPanelProps) {
 
         {/* Event ID */}
         <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Event ID</h3>
-          <div className="font-mono text-xs text-gray-800 break-all bg-gray-50 p-2 rounded">
+          <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Event ID</h3>
+          <div className="font-mono text-xs text-foreground break-all bg-muted/50 p-2 rounded">
             {eventId}
           </div>
         </div>
@@ -53,8 +53,8 @@ export default function EventPanel({ node, onClose }: EventPanelProps) {
         {/* Transaction */}
         {tx && (
           <div className="mb-6">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Transaction</h3>
-            <div className="font-mono text-xs text-gray-800 break-all bg-gray-50 p-2 rounded">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Transaction</h3>
+            <div className="font-mono text-xs text-foreground break-all bg-muted/50 p-2 rounded">
               {tx}
             </div>
           </div>
@@ -67,7 +67,7 @@ export default function EventPanel({ node, onClose }: EventPanelProps) {
               href={suiscanTxUrl(tx)}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full px-4 py-2 bg-blue-500 text-white text-center rounded hover:bg-blue-600 transition-colors"
+              className="block w-full px-4 py-2 bg-blue-600 text-white text-center rounded hover:bg-blue-700 transition-colors"
             >
               View Transaction on SuiScan
             </a>
@@ -75,7 +75,7 @@ export default function EventPanel({ node, onClose }: EventPanelProps) {
               href={suiexplorerTxUrl(tx)}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full px-4 py-2 bg-green-500 text-white text-center rounded hover:bg-green-600 transition-colors"
+              className="block w-full px-4 py-2 bg-green-600 text-white text-center rounded hover:bg-green-700 transition-colors"
             >
               View Transaction on Sui Explorer
             </a>
@@ -83,9 +83,9 @@ export default function EventPanel({ node, onClose }: EventPanelProps) {
         )}
 
         {/* Info Box */}
-        <div className="mt-6 p-4 bg-blue-50 rounded border border-blue-200">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">About this event:</h3>
-          <p className="text-sm text-blue-800">
+        <div className="mt-6 p-4 bg-blue-500/10 rounded border border-blue-500/20">
+          <h3 className="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-2">About this event:</h3>
+          <p className="text-sm text-blue-600 dark:text-blue-400">
             {getEventDescription(kind)}
           </p>
         </div>

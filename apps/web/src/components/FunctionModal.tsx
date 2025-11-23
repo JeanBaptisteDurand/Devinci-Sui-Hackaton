@@ -159,18 +159,18 @@ export default function FunctionModal({ func, moduleName, onClose }: FunctionMod
 
     return (
       <div>
-        <pre className="text-xs font-mono whitespace-pre-wrap break-all text-gray-100">
+        <pre className="text-xs font-mono whitespace-pre-wrap break-all text-foreground">
           {displayLines.join('\n')}
         </pre>
         
         {shouldTruncate && !expanded && (
-          <div className="mt-4 text-center border-t border-gray-700 pt-4">
-            <p className="text-sm text-gray-400 mb-2">
+          <div className="mt-4 text-center border-t border-border pt-4">
+            <p className="text-sm text-muted-foreground mb-2">
               Showing {TRUNCATE_LINES} of {lines.length} lines
             </p>
             <button
               onClick={() => setExpanded(true)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+              className="px-4 py-2 bg-accent hover:bg-accent/80 text-foreground rounded transition-colors"
             >
               Show More ({lines.length - TRUNCATE_LINES} more lines)
             </button>
@@ -178,10 +178,10 @@ export default function FunctionModal({ func, moduleName, onClose }: FunctionMod
         )}
         
         {shouldTruncate && expanded && (
-          <div className="mt-4 text-center border-t border-gray-700 pt-4">
+          <div className="mt-4 text-center border-t border-border pt-4">
             <button
               onClick={() => setExpanded(false)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition-colors"
+              className="px-4 py-2 bg-accent hover:bg-accent/80 text-foreground rounded transition-colors"
             >
               Show Less
             </button>
@@ -192,20 +192,20 @@ export default function FunctionModal({ func, moduleName, onClose }: FunctionMod
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={onClose}>
       <div
-        className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-card rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Minimal Header */}
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+        <div className="p-4 border-b border-border flex justify-between items-center bg-primary text-primary-foreground">
           <div>
             <h2 className="text-lg font-semibold font-mono">{func.name}</h2>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-xs text-blue-100">
+              <p className="text-xs text-primary-foreground/80">
                 {func.visibility} {func.isEntry && '• Entry'}
               </p>
-              <span className="text-xs px-2 py-0.5 rounded bg-purple-500/30 text-purple-100 border border-purple-400">
+              <span className="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 border border-purple-500/50">
                 🔮 Decompiled by SuiGPT
               </span>
             </div>
@@ -214,14 +214,14 @@ export default function FunctionModal({ func, moduleName, onClose }: FunctionMod
             <button
               onClick={handleCopy}
               disabled={!disassembly}
-              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-1.5 bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Copy to clipboard"
             >
               {copied ? '✓ Copied!' : '📋 Copy'}
             </button>
           <button
             onClick={onClose}
-            className="text-white hover:text-gray-200 text-2xl leading-none font-bold"
+            className="text-primary-foreground hover:text-primary-foreground/80 text-2xl leading-none font-bold"
           >
             ×
           </button>
@@ -229,16 +229,16 @@ export default function FunctionModal({ func, moduleName, onClose }: FunctionMod
           </div>
 
         {/* Disassembly Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto bg-card">
           {loading && (
             <div className="p-8 text-center">
-              <div className="text-gray-500">Loading disassembly...</div>
+              <div className="text-muted-foreground">Loading disassembly...</div>
             </div>
           )}
 
           {error && (
             <div className="p-8">
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+              <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">
                 {error}
           </div>
             </div>
@@ -247,21 +247,21 @@ export default function FunctionModal({ func, moduleName, onClose }: FunctionMod
           {!loading && !error && disassembly && (
             <div className="p-4">
               {/* Source Code Block */}
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+              <div className="bg-muted rounded-lg p-4 overflow-x-auto border border-border">
                 {renderBytecode()}
               </div>
 
               {/* Function Calls */}
               {disassembly.calls && disassembly.calls.length > 0 && (
                 <div className="mt-4">
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase mb-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                     Function Calls ({disassembly.calls.length})
                   </h3>
-                  <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 space-y-2 border border-blue-200">
+                  <div className="bg-blue-500/10 rounded-lg p-3 space-y-2 border border-blue-500/20">
                     {disassembly.calls.map((call, idx) => (
-                      <div key={idx} className="text-sm border-l-4 border-blue-500 pl-3 bg-white/50 p-2 rounded">
-                        <div className="font-mono text-gray-900 font-semibold">
-                          → {call.module}::<span className="text-blue-700">{call.func}</span>
+                      <div key={idx} className="text-sm border-l-4 border-blue-500 pl-3 bg-card/50 p-2 rounded">
+                        <div className="font-mono text-foreground font-semibold">
+                          → {call.module}::<span className="text-blue-500">{call.func}</span>
                         </div>
                       </div>
                     ))}
@@ -272,16 +272,16 @@ export default function FunctionModal({ func, moduleName, onClose }: FunctionMod
               {/* Constants Detected */}
               {disassembly.constants && disassembly.constants.length > 0 && (
                 <div className="mt-4">
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase mb-2">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                     Hardcoded Constants ({disassembly.constants.length})
                   </h3>
-                  <div className="bg-yellow-50 rounded-lg p-3 space-y-2">
+                  <div className="bg-yellow-500/10 rounded-lg p-3 space-y-2 border border-yellow-500/20">
                     {disassembly.constants.map((constant, idx) => (
                       <div key={idx} className="text-sm border-l-2 border-yellow-500 pl-3">
-                        <div className="font-mono text-gray-900">
-                          {constant.type}: <span className="text-yellow-700">{constant.value}</span>
+                        <div className="font-mono text-foreground">
+                          {constant.type}: <span className="text-yellow-500">{constant.value}</span>
                         </div>
-                        <div className="text-xs text-gray-500">at offset {constant.offset}</div>
+                        <div className="text-xs text-muted-foreground">at offset {constant.offset}</div>
                       </div>
                     ))}
                   </div>
@@ -292,10 +292,10 @@ export default function FunctionModal({ func, moduleName, onClose }: FunctionMod
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200 flex justify-end bg-gray-50">
+        <div className="p-4 border-t border-border flex justify-end bg-muted/50">
           <button
             onClick={onClose}
-            className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-6 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
           >
             Close
           </button>

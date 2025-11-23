@@ -17,6 +17,11 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        brand: ['Inter Tight', 'sans-serif'],
+        everett: ['TWK Everett', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -50,6 +55,26 @@ module.exports = {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
+        },
+        sea: {
+          DEFAULT: "#4DA2FF",
+          foreground: "#FFFFFF",
+        },
+        aqua: {
+          DEFAULT: "#C0E6FF",
+          foreground: "#030F1C",
+        },
+        cloud: {
+          DEFAULT: "#FFFFFF",
+          foreground: "#030F1C",
+        },
+        "deep-ocean": {
+          DEFAULT: "#030F1C",
+          foreground: "#FFFFFF",
+        },
+        ocean: {
+          DEFAULT: "#011829",
+          foreground: "#FFFFFF",
         },
       },
       borderRadius: {

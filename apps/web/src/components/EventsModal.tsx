@@ -139,13 +139,13 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
 
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-white rounded-lg shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col"
+        className="bg-card rounded-lg shadow-2xl max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden flex flex-col border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-yellow-600 to-yellow-800 text-white px-6 py-4 flex justify-between items-center">
+        <div className="bg-primary text-primary-foreground px-6 py-4 flex justify-between items-center">
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h2 className="text-xl font-bold">Recent Events</h2>
@@ -157,21 +157,21 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
                 {network.toUpperCase()}
               </span>
             </div>
-            <p className="text-sm text-yellow-100 mt-1">Module: {title}</p>
+            <p className="text-sm text-primary-foreground/80 mt-1">Module: {title}</p>
           </div>
           <button
             onClick={onClose}
-            className="text-white hover:text-gray-200 text-2xl font-bold"
+            className="text-primary-foreground hover:text-primary-foreground/80 text-2xl font-bold"
           >
             ×
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-card">
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
           ) : events.length > 0 ? (
             <div className="space-y-4">
@@ -181,22 +181,22 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
                 const eventPackage = evt.kind?.split('::')[0] || 'N/A';
                 
                 return (
-                  <div key={evt.id || idx} className="bg-white rounded-lg p-4 border-2 border-gray-200 hover:border-yellow-400 transition-colors shadow-sm">
+                  <div key={evt.id || idx} className="bg-card rounded-lg p-4 border-2 border-border hover:border-primary transition-colors shadow-sm">
                     {/* Event Type Header */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <span className="px-3 py-1.5 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white text-sm font-bold rounded-md shadow-sm">
+                          <span className="px-3 py-1.5 bg-primary text-primary-foreground text-sm font-bold rounded-md shadow-sm">
                             {eventTypeName}
                           </span>
                           {evt.kind && evt.kind.includes('::') && (
-                            <span className="text-xs text-gray-600 font-mono bg-gray-100 px-2 py-1 rounded">
+                            <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
                               {evt.kind.split('::').slice(0, -1).join('::')}
                             </span>
                           )}
                         </div>
                         {evt.ts && (
-                          <div className="text-xs text-gray-500 flex items-center gap-1">
+                          <div className="text-xs text-muted-foreground flex items-center gap-1">
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
@@ -210,9 +210,9 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
                     <div className="space-y-2">
                       {/* Full Event Type */}
                       {evt.kind && (
-                        <div className="bg-gray-50 p-2 rounded">
-                          <div className="text-xs font-semibold text-gray-600 mb-1">Event Type</div>
-                          <code className="text-xs font-mono text-gray-800 break-all leading-relaxed">
+                        <div className="bg-muted/50 p-2 rounded">
+                          <div className="text-xs font-semibold text-muted-foreground mb-1">Event Type</div>
+                          <code className="text-xs font-mono text-foreground break-all leading-relaxed">
                             {evt.kind}
                           </code>
                         </div>
@@ -220,9 +220,9 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
 
                       {/* Transaction Digest */}
                       {evt.tx && (
-                        <div className="bg-blue-50 p-2 rounded">
-                          <div className="text-xs font-semibold text-blue-700 mb-1">Transaction</div>
-                          <code className="text-xs font-mono text-blue-900 break-all">
+                        <div className="bg-blue-500/10 p-2 rounded">
+                          <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1">Transaction</div>
+                          <code className="text-xs font-mono text-blue-700 dark:text-blue-300 break-all">
                             {evt.tx}
                           </code>
                         </div>
@@ -230,9 +230,9 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
 
                       {/* Sender */}
                       {evt.sender && (
-                        <div className="bg-green-50 p-2 rounded">
-                          <div className="text-xs font-semibold text-green-700 mb-1">Sender</div>
-                          <code className="text-xs font-mono text-green-900 break-all">
+                        <div className="bg-green-500/10 p-2 rounded">
+                          <div className="text-xs font-semibold text-green-600 dark:text-green-400 mb-1">Sender</div>
+                          <code className="text-xs font-mono text-green-700 dark:text-green-300 break-all">
                             {evt.sender}
                           </code>
                         </div>
@@ -240,9 +240,9 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
 
                       {/* Package ID */}
                       {eventPackage && eventPackage !== 'N/A' && (
-                        <div className="bg-purple-50 p-2 rounded">
-                          <div className="text-xs font-semibold text-purple-700 mb-1">Package</div>
-                          <code className="text-xs font-mono text-purple-900 break-all">
+                        <div className="bg-purple-500/10 p-2 rounded">
+                          <div className="text-xs font-semibold text-purple-600 dark:text-purple-400 mb-1">Package</div>
+                          <code className="text-xs font-mono text-purple-700 dark:text-purple-300 break-all">
                             {eventPackage}
                           </code>
                         </div>
@@ -250,15 +250,15 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
 
                       {/* Parsed Event Data */}
                       {evt.data && Object.keys(evt.data).length > 0 && (
-                        <div className="bg-yellow-50 p-2 rounded border border-yellow-200">
+                        <div className="bg-yellow-500/10 p-2 rounded border border-yellow-500/20">
                           <details className="text-xs">
-                            <summary className="cursor-pointer text-yellow-800 hover:text-yellow-900 font-semibold flex items-center gap-1">
+                            <summary className="cursor-pointer text-yellow-700 dark:text-yellow-300 hover:text-yellow-800 dark:hover:text-yellow-200 font-semibold flex items-center gap-1">
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                               </svg>
                               Event Data ({Object.keys(evt.data).length} fields)
                             </summary>
-                            <pre className="mt-2 text-xs bg-white p-3 rounded overflow-x-auto border border-yellow-300 max-h-60 overflow-y-auto">
+                            <pre className="mt-2 text-xs bg-card p-3 rounded overflow-x-auto border border-yellow-500/30 max-h-60 overflow-y-auto text-foreground">
                               {JSON.stringify(evt.data, null, 2)}
                             </pre>
                           </details>
@@ -270,30 +270,30 @@ export default function EventsModal({ analysisId, scope, id, title, onClose }: E
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               No events found
             </div>
           )}
         </div>
 
         {/* Footer with Pagination */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-between items-center border-t">
+        <div className="bg-muted/50 px-6 py-4 flex justify-between items-center border-t border-border">
           <button
             onClick={handlePrevPage}
             disabled={currentPage === 0}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ← Previous
           </button>
           
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-muted-foreground">
             Page {currentPage + 1} {events.length > 0 && `(${events.length} events)`}
           </span>
           
           <button
             onClick={handleNextPage}
             disabled={!hasNextPage || !cursor}
-            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next →
           </button>

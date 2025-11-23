@@ -80,7 +80,7 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
       <div className="absolute top-4 left-4 z-10">
         <button
           onClick={() => setIsExpanded(true)}
-          className="px-4 py-2 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-gray-200"
+          className="px-4 py-2 bg-card rounded-lg shadow-lg hover:shadow-xl transition-shadow border border-border text-foreground"
         >
           <span className="text-lg">☰</span>
         </button>
@@ -133,7 +133,7 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
   };
 
   return (
-    <div className="absolute top-4 left-4 z-10 w-80 bg-white rounded-lg shadow-xl border border-gray-200 overflow-hidden">
+    <div className="absolute top-4 left-4 z-10 w-80 bg-card rounded-lg shadow-xl border border-border overflow-hidden">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 px-4 py-3 flex justify-between items-center">
         <h3 className="text-white font-semibold text-sm">Control Panel</h3>
@@ -146,13 +146,13 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-border">
         <button
           onClick={() => setActiveTab('nodes')}
           className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === 'nodes'
-              ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-700'
-              : 'text-gray-600 hover:bg-gray-50'
+              ? 'bg-accent text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:bg-accent/50'
           }`}
         >
           Nodes
@@ -161,8 +161,8 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
           onClick={() => setActiveTab('links')}
           className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === 'links'
-              ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-700'
-              : 'text-gray-600 hover:bg-gray-50'
+              ? 'bg-accent text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:bg-accent/50'
           }`}
         >
           Links
@@ -171,8 +171,8 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
           onClick={() => setActiveTab('packages')}
           className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === 'packages'
-              ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-700'
-              : 'text-gray-600 hover:bg-gray-50'
+              ? 'bg-accent text-primary border-b-2 border-primary'
+              : 'text-muted-foreground hover:bg-accent/50'
           }`}
         >
           Packages
@@ -180,7 +180,7 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
       </div>
 
       {/* Content */}
-      <div className="max-h-96 overflow-y-auto">
+      <div className="max-h-96 overflow-y-auto bg-card">
         {activeTab === 'nodes' && (
           <div className="p-4 space-y-2">
             {Object.entries(nodeTypeLabels)
@@ -193,11 +193,11 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
                 return (
                   <label
                     key={nodeType}
-                    className="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="flex items-center justify-between px-3 py-2 rounded hover:bg-accent cursor-pointer transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-700">{label}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                      <span className="text-sm font-medium text-foreground">{label}</span>
+                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                         {count}
                       </span>
                     </div>
@@ -205,13 +205,13 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
                       type="checkbox"
                       checked={visibilityState.nodeTypes[nodeType as keyof VisibilityState['nodeTypes']]}
                       onChange={() => toggleNodeType(nodeType as keyof VisibilityState['nodeTypes'])}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-primary rounded focus:ring-primary"
                     />
                   </label>
                 );
               })}
             {Object.values(nodeTypeCounts).every(count => count === 0) && (
-              <div className="text-sm text-gray-500 italic text-center py-4">
+              <div className="text-sm text-muted-foreground italic text-center py-4">
                 No nodes found in graph
               </div>
             )}
@@ -225,19 +225,19 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
               .map(([linkType, label]) => (
                 <label
                   key={linkType}
-                  className="flex items-center justify-between px-3 py-2 rounded hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded hover:bg-accent cursor-pointer transition-colors"
                 >
-                  <span className="text-sm font-medium text-gray-700">{label}</span>
+                  <span className="text-sm font-medium text-foreground">{label}</span>
                   <input
                     type="checkbox"
                     checked={visibilityState.linkTypes[linkType as keyof VisibilityState['linkTypes']]}
                     onChange={() => toggleLinkType(linkType as keyof VisibilityState['linkTypes'])}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-primary rounded focus:ring-primary"
                   />
                 </label>
               ))}
             {existingLinkTypes.size === 0 && (
-              <div className="text-sm text-gray-500 italic text-center py-4">
+              <div className="text-sm text-muted-foreground italic text-center py-4">
                 No link types found in graph
               </div>
             )}
@@ -248,13 +248,13 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
           <div className="p-4 space-y-3">
             {/* Hide Dependencies Button */}
             {graphData && graphData.packages && graphData.packages.length > 1 && (
-              <div className="mb-4 pb-4 border-b border-gray-200">
+              <div className="mb-4 pb-4 border-b border-border">
                 <button
                   onClick={toggleDependencies}
                   className={`w-full px-4 py-2 rounded-lg font-medium transition-all ${
                     visibilityState.showDependencies
-                      ? 'bg-blue-600 text-white hover:bg-blue-700'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   }`}
                 >
                   {visibilityState.showDependencies ? (
@@ -280,20 +280,20 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
                   key={pkg.id}
                   className={`flex items-center justify-between px-3 py-2 rounded cursor-pointer transition-colors ${
                     isPrimary
-                      ? 'bg-yellow-50 hover:bg-yellow-100 border border-yellow-300'
-                      : 'hover:bg-gray-50'
+                      ? 'bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/20'
+                      : 'hover:bg-accent'
                   }`}
                 >
                   <div className="flex-1 min-w-0 mr-2">
                     {isPrimary && (
-                      <div className="text-xs font-semibold text-yellow-700 mb-1">
+                      <div className="text-xs font-semibold text-yellow-700 dark:text-yellow-300 mb-1">
                         PRIMARY PACKAGE
                       </div>
                     )}
-                    <div className="text-sm font-medium text-gray-800 truncate">
+                    <div className="text-sm font-medium text-foreground truncate">
                       {pkg.displayName || pkg.address}
                     </div>
-                    <div className="text-xs text-gray-500 truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                       {pkg.address.slice(0, 12)}...{pkg.address.slice(-6)}
                     </div>
                   </div>
@@ -301,7 +301,7 @@ export default function ControlMenu({ graphData, visibilityState, onVisibilityCh
                     type="checkbox"
                     checked={visibilityState.packages[pkg.id] !== false}
                     onChange={() => togglePackage(pkg.id)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-primary rounded focus:ring-primary"
                   />
                 </label>
               );

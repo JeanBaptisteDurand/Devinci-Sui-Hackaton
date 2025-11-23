@@ -60,12 +60,12 @@ export default function FullSourceModal({ moduleName, moduleDisplayName, onClose
 
   const renderSourceCode = () => {
     if (!sourceCode) {
-      return <p className="text-gray-400 text-sm">No source code available</p>;
+      return <p className="text-muted-foreground text-sm">No source code available</p>;
     }
 
     return (
       <pre className="text-sm overflow-x-auto">
-        <code className="text-green-400 font-mono whitespace-pre">
+        <code className="text-green-600 dark:text-green-400 font-mono whitespace-pre">
           {sourceCode}
         </code>
       </pre>
@@ -74,14 +74,14 @@ export default function FullSourceModal({ moduleName, moduleDisplayName, onClose
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-card rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col border border-border">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+        <div className="p-4 border-b border-border flex justify-between items-center bg-primary text-primary-foreground">
           <div>
             <h2 className="text-lg font-semibold font-mono">{moduleDisplayName}</h2>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-xs text-purple-100">Full Module Source Code</p>
-              <span className="text-xs px-2 py-0.5 rounded bg-purple-500/30 text-purple-100 border border-purple-400">
+              <p className="text-xs text-primary-foreground/80">Full Module Source Code</p>
+              <span className="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 border border-purple-500/50">
                 🔮 Decompiled by SuiGPT
               </span>
             </div>
@@ -89,7 +89,7 @@ export default function FullSourceModal({ moduleName, moduleDisplayName, onClose
           <div className="flex items-center gap-2">
             <button
               onClick={handleCopy}
-              className="px-3 py-1.5 bg-purple-500 hover:bg-purple-400 text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+              className="px-3 py-1.5 bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground text-sm rounded-lg transition-colors flex items-center gap-2"
             >
               {copied ? (
                 <>
@@ -105,7 +105,7 @@ export default function FullSourceModal({ moduleName, moduleDisplayName, onClose
             </button>
             <button
               onClick={onClose}
-              className="text-white hover:text-purple-200 transition-colors text-2xl leading-none"
+              className="text-primary-foreground hover:text-primary-foreground/80 transition-colors text-2xl leading-none"
               aria-label="Close"
             >
               ×
@@ -114,24 +114,24 @@ export default function FullSourceModal({ moduleName, moduleDisplayName, onClose
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 bg-card">
           {loading && (
             <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
             </div>
           )}
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-red-800 text-sm font-semibold">Error loading source code</p>
-              <p className="text-red-600 text-xs mt-1">{error}</p>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+              <p className="text-destructive text-sm font-semibold">Error loading source code</p>
+              <p className="text-destructive/80 text-xs mt-1">{error}</p>
             </div>
           )}
 
           {!loading && !error && (
             <div>
               {/* Source Code Block */}
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+              <div className="bg-muted rounded-lg p-4 overflow-x-auto border border-border">
                 {renderSourceCode()}
               </div>
             </div>
