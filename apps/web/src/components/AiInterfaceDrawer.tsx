@@ -554,58 +554,58 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
   return (
     <div 
       ref={sidebarRef}
-      className="fixed top-[80px] right-0 h-[calc(100vh-80px)] z-50 bg-white shadow-2xl flex flex-col border-l border-gray-200"
+      className="fixed top-[80px] right-0 h-[calc(100vh-80px)] z-50 bg-card shadow-2xl flex flex-col border-l border-border"
       style={{ width: `${width}px` }}
     >
         {/* Closing Zone Overlay */}
         {isClosingZone && (
-          <div className="absolute inset-0 z-[60] bg-red-500/20 backdrop-blur-[1px] flex flex-col items-center justify-center text-red-600 animate-in fade-in duration-200">
-            <div className="bg-white/90 p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3 border-2 border-red-100">
-              <div className="p-3 bg-red-100 rounded-full">
-                <X className="w-8 h-8 text-red-600" />
+          <div className="absolute inset-0 z-[60] bg-destructive/20 backdrop-blur-[1px] flex flex-col items-center justify-center text-destructive animate-in fade-in duration-200">
+            <div className="bg-card/90 p-6 rounded-2xl shadow-xl flex flex-col items-center gap-3 border-2 border-destructive/30">
+              <div className="p-3 bg-destructive/20 rounded-full">
+                <X className="w-8 h-8 text-destructive" />
               </div>
               <span className="font-bold text-lg">Closing Drawer</span>
-              <span className="text-sm text-red-500/80">Release to close</span>
+              <span className="text-sm text-destructive/80">Release to close</span>
             </div>
           </div>
         )}
 
         {/* Resize Handle */}
         <div
-          className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-12 bg-white border border-gray-200 rounded-l-lg shadow-md flex items-center justify-center cursor-ew-resize hover:bg-gray-50 z-50"
+          className="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-12 bg-card border border-border rounded-l-lg shadow-md flex items-center justify-center cursor-ew-resize hover:bg-accent z-50"
           onMouseDown={startResizing}
         >
-          <GripVertical className="w-4 h-4 text-gray-400" />
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
         </div>
 
         {/* Header */}
-        <div className="h-16 border-b border-gray-200 flex items-center justify-between px-6 bg-gray-50">
+        <div className="h-16 border-b border-border flex items-center justify-between px-6 bg-muted/50">
           <div className="w-8"></div> {/* Spacer for centering */}
-          <h2 className="text-xl font-bold text-gray-800">AI Interface</h2>
+          <h2 className="text-xl font-bold text-foreground">AI Interface</h2>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+            className="p-2 hover:bg-accent rounded-full transition-colors"
           >
-            <X className="w-6 h-6 text-gray-500" />
+            <X className="w-6 h-6 text-muted-foreground" />
           </button>
         </div>
 
         <div className="flex-1 flex overflow-hidden">
           
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col bg-white">
-            <div className="h-14 border-b border-gray-100 flex items-center px-6">
-              <h3 className={`font-semibold text-lg flex items-center gap-2 ${SECTION_STYLES[currentSection].iconColor}`}>
+          <div className="flex-1 flex flex-col bg-card">
+            <div className="h-14 border-b border-border flex items-center px-6">
+              <h3 className="font-semibold text-lg text-primary flex items-center gap-2">
                 {React.createElement(SECTIONS[currentSection].icon, { className: "w-5 h-5" })}
                 {SECTIONS[currentSection].title}
               </h3>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/50">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-muted/30">
               {loadingSummary && currentSection === 'summary' && (
                 <div className="flex justify-start">
-                  <div className="bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-none px-5 py-3 shadow-sm">
-                    <p className="text-sm text-gray-500">Loading global summary...</p>
+                  <div className="bg-card border border-border text-foreground rounded-2xl rounded-bl-none px-5 py-3 shadow-sm">
+                    <p className="text-sm text-muted-foreground">Loading global summary...</p>
                   </div>
                 </div>
               )}
@@ -617,8 +617,8 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   <div 
                     className={`max-w-[80%] rounded-2xl px-5 py-3 shadow-sm ${
                       msg.role === 'user' 
-                        ? `${SECTION_STYLES[currentSection].chatBubble} rounded-br-none` 
-                        : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
+                        ? 'bg-primary text-primary-foreground rounded-br-none' 
+                        : 'bg-card border border-border text-foreground rounded-bl-none'
                     }`}
                   >
                     {msg.role === 'ai' ? (
@@ -647,20 +647,19 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-4 border-t border-gray-200 bg-white">
+            <div className="p-4 border-t border-border bg-card">
               <form onSubmit={handleSendMessage} className="flex gap-3">
                 <input
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  placeholder={isSending ? "Waiting for response..." : "Ask something about this section..."}
-                  disabled={isSending}
-                  className={`flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:bg-white transition-all ${SECTION_STYLES[currentSection].ring} disabled:opacity-50`}
+                  placeholder="Ask something about this section..."
+                  className="flex-1 px-4 py-3 bg-muted/50 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:bg-card transition-all text-foreground"
                 />
                 <button 
                   type="submit"
-                  disabled={!inputValue.trim() || isSending}
-                  className={`px-4 py-2 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium ${SECTION_STYLES[currentSection].button}`}
+                  disabled={!inputValue.trim()}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 font-medium"
                 >
                   <Send className="w-4 h-4" />
                   {isSending ? '...' : 'Send'}
@@ -670,10 +669,10 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
           </div>
 
           {/* Navigation Column */}
-          <div className="w-72 bg-gray-50 border-l border-gray-200 flex flex-col">
-            <div className="p-6 border-b border-gray-200">
+          <div className="w-72 bg-muted/50 border-l border-border flex flex-col">
+            <div className="p-6 border-b border-border">
               <h3 
-                className="font-bold text-gray-700 uppercase text-xs tracking-wider cursor-pointer flex items-center gap-2"
+                className="font-bold text-foreground uppercase text-xs tracking-wider cursor-pointer flex items-center gap-2"
                 onClick={() => {
                   if (selectedModule) {
                     setSelectedModule(null);
@@ -703,8 +702,8 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     }}
                     className={`w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all ${
                       currentSection === section
-                        ? SECTION_STYLES[section].active
-                        : SECTION_STYLES[section].inactive
+                        ? 'bg-primary/20 text-primary font-medium shadow-sm ring-1 ring-primary/30'
+                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                     }`}
                   >
                     {React.createElement(SECTIONS[section].icon, { 
@@ -818,7 +817,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     <button
                       key={module.id}
                       onClick={() => handleModuleClick(module)}
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-green-50 hover:text-green-700"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-muted-foreground hover:bg-accent hover:text-foreground"
                     >
                       <Box className="w-4 h-4 flex-shrink-0 text-green-600" />
                       <span className="text-sm truncate" title={module.name}>{module.name}</span>
@@ -830,7 +829,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                       href={suiscanPackageUrl(packageId, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-yellow-50 hover:text-yellow-700"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-muted-foreground hover:bg-accent hover:text-foreground"
                     >
                       <ExternalLink className="w-4 h-4 flex-shrink-0 text-yellow-600" />
                       <span className="text-sm">View on SuiScan</span>
@@ -839,7 +838,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                       href={suivisionPackageUrl(packageId, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-yellow-50 hover:text-yellow-700"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-muted-foreground hover:bg-accent hover:text-foreground"
                     >
                       <ExternalLink className="w-4 h-4 flex-shrink-0 text-yellow-600" />
                       <span className="text-sm">View on SuiVision</span>
@@ -851,7 +850,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                       <button
                         key={module.id}
                         onClick={() => handleModuleClick(module)}
-                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-green-50 hover:text-green-700"
+                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-muted-foreground hover:bg-accent hover:text-foreground"
                       >
                         <Box className="w-4 h-4 flex-shrink-0 text-green-600" />
                         <span className="text-sm truncate" title={module.name}>{module.name}</span>
@@ -861,8 +860,8 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                     dependencies.map((dep) => (
                       <button
                         key={dep.id}
-                        onClick={() => handleDependencyClick(dep)}
-                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-blue-50 hover:text-blue-700"
+                        onClick={() => setSelectedDependency(dep)}
+                        className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-muted-foreground hover:bg-accent hover:text-foreground"
                       >
                         <LinkIcon className="w-4 h-4 flex-shrink-0 text-blue-600" />
                         <span className="text-sm truncate" title={dep.name}>{dep.name}</span>
@@ -873,7 +872,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   ['1', '2', '3'].map((item) => (
                     <button
                       key={item}
-                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-gray-600 hover:bg-gray-200 hover:text-gray-900"
+                      className="w-full text-left px-4 py-3 rounded-lg flex items-center gap-3 transition-all text-muted-foreground hover:bg-accent hover:text-foreground"
                     >
                       <span className="text-sm">Mock Button {item}</span>
                     </button>

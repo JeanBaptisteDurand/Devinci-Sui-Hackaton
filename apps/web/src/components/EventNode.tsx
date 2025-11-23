@@ -11,11 +11,11 @@ interface EventNodeProps {
 
 function EventNode({ data }: EventNodeProps) {
   const kindColors: Record<string, { bg: string; border: string; text: string }> = {
-    Publish: { bg: 'bg-green-100', border: 'border-green-400', text: 'text-green-700' },
-    Upgrade: { bg: 'bg-blue-100', border: 'border-blue-400', text: 'text-blue-700' },
-    Mint: { bg: 'bg-purple-100', border: 'border-purple-400', text: 'text-purple-700' },
-    Burn: { bg: 'bg-red-100', border: 'border-red-400', text: 'text-red-700' },
-    Custom: { bg: 'bg-gray-100', border: 'border-gray-400', text: 'text-gray-700' },
+    Publish: { bg: 'bg-green-100 dark:bg-green-900/50', border: 'border-green-400 dark:border-green-600', text: 'text-green-700 dark:text-green-300' },
+    Upgrade: { bg: 'bg-blue-100 dark:bg-blue-900/50', border: 'border-blue-400 dark:border-blue-600', text: 'text-blue-700 dark:text-blue-300' },
+    Mint: { bg: 'bg-purple-100 dark:bg-purple-900/50', border: 'border-purple-400 dark:border-purple-600', text: 'text-purple-700 dark:text-purple-300' },
+    Burn: { bg: 'bg-red-100 dark:bg-red-900/50', border: 'border-red-400 dark:border-red-600', text: 'text-red-700 dark:text-red-300' },
+    Custom: { bg: 'bg-gray-100 dark:bg-gray-800', border: 'border-gray-400 dark:border-gray-600', text: 'text-gray-700 dark:text-gray-300' },
   };
 
   const colors = kindColors[data.kind] || kindColors.Custom;
@@ -30,7 +30,7 @@ function EventNode({ data }: EventNodeProps) {
         <span className={`text-[10px] font-bold ${colors.text} uppercase`}>
           {data.kind}
         </span>
-        <div className="font-mono text-[10px] text-gray-600 truncate max-w-full">
+        <div className="font-mono text-[10px] text-gray-600 dark:text-gray-400 truncate max-w-full">
           {data.label}
         </div>
       </div>

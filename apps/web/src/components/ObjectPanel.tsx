@@ -39,27 +39,27 @@ export default function ObjectPanel({ node, analysisId, onClose }: ObjectPanelPr
   const flags = objectDetails?.flags || [];
 
   return (
-    <div className="w-96 h-full bg-white shadow-2xl border-l border-gray-200 overflow-y-auto">
+    <div className="w-96 h-full bg-card shadow-2xl border-l border-border overflow-y-auto">
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Object Details</h2>
+          <h2 className="text-2xl font-bold text-foreground">Object Details</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+            className="text-muted-foreground hover:text-foreground text-2xl font-bold"
           >
             ×
           </button>
         </div>
 
         {loading ? (
-          <div className="text-center py-8 text-gray-500">Loading...</div>
+          <div className="text-center py-8 text-muted-foreground">Loading...</div>
         ) : (
           <>
             {/* Object ID */}
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Object ID</h3>
-              <div className="font-mono text-xs text-gray-800 break-all bg-gray-50 p-2 rounded">
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Object ID</h3>
+              <div className="font-mono text-xs text-foreground break-all bg-muted/50 p-2 rounded">
                 {objectId}
               </div>
             </div>
@@ -67,20 +67,20 @@ export default function ObjectPanel({ node, analysisId, onClose }: ObjectPanelPr
             {/* Owner Info */}
             {object?.owner && (
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Owner</h3>
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Owner</h3>
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-1 rounded text-xs font-semibold ${
                     object.owner.kind === 'Shared' 
-                      ? 'bg-yellow-100 text-yellow-800'
+                      ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200'
                       : object.owner.kind === 'Immutable'
-                      ? 'bg-gray-100 text-gray-800'
-                      : 'bg-blue-100 text-blue-800'
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
+                      : 'bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200'
                   }`}>
                     {object.owner.kind}
                   </span>
                 </div>
                 {object.owner.address && (
-                  <div className="font-mono text-xs text-gray-600 break-all bg-gray-50 p-2 rounded mt-2">
+                  <div className="font-mono text-xs text-muted-foreground break-all bg-muted/50 p-2 rounded mt-2">
                     {object.owner.address}
                   </div>
                 )}
@@ -90,8 +90,8 @@ export default function ObjectPanel({ node, analysisId, onClose }: ObjectPanelPr
             {/* Type */}
             {object?.typeFqn && (
               <div className="mb-6">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Type</h3>
-                <div className="font-mono text-xs text-gray-700 break-all bg-violet-50 p-2 rounded border border-violet-200">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">Type</h3>
+                <div className="font-mono text-xs text-foreground break-all bg-violet-50 dark:bg-violet-900/20 p-2 rounded border border-violet-200 dark:border-violet-800">
                   {object.typeFqn}
                 </div>
               </div>

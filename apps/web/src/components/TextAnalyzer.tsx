@@ -207,16 +207,16 @@ export function TextAnalyzer() {
         
         {/* Progress Bar - Show during analysis */}
         {isAnalyzing && (
-          <div className="space-y-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+          <div className="space-y-3 p-4 bg-blue-500/10 rounded-lg border-2 border-blue-500/20">
             <div className="flex justify-between items-center text-sm">
-              <span className="font-semibold text-blue-900">
+              <span className="font-semibold text-blue-700 dark:text-blue-300">
                 Analyzing package...
-                {network && <span className="ml-2 text-blue-600">({network})</span>}
+                {network && <span className="ml-2 text-blue-600 dark:text-blue-400">({network})</span>}
               </span>
-              <span className="font-bold text-blue-900">{Math.round(progress)}%</span>
+              <span className="font-bold text-blue-700 dark:text-blue-300">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-3" />
-            <p className="text-xs text-blue-700">
+            <p className="text-xs text-blue-600 dark:text-blue-400">
               {progress < 20 && 'Initializing analysis...'}
               {progress >= 20 && progress < 50 && 'Fetching package data...'}
               {progress >= 50 && progress < 80 && 'Processing modules and dependencies...'}

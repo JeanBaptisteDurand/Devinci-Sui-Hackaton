@@ -27,6 +27,7 @@ import { logger } from '../utils/logger';
 import { useAuth } from '@/hooks/use-auth';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import type { GraphData } from '@suilens/core';
+import { useTheme } from '@/components/theme-provider';
 
 const nodeTypes = {
   packageNode: PackageNode,
@@ -41,6 +42,7 @@ export default function GraphView() {
   const { id } = useParams<{ id: string }>();
   const account = useCurrentAccount();
   const { getAuthHeaders, ensureAuthenticated, isAuthenticated } = useAuth();
+  const { theme } = useTheme();
   const [graphData, setGraphData] = useState<GraphData | null>(null);
   const [metadata, setMetadata] = useState<{ network?: string; packageId?: string; depth?: number; createdAt?: string } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,6 +83,8 @@ export default function GraphView() {
   // Use React Flow hooks for interactive nodes and edges
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   useEffect(() => {
     if (id) {
@@ -341,9 +345,9 @@ export default function GraphView() {
 
   if (loading) {
     return (
-      <div className="h-full flex items-center justify-center">
+      <div className="h-full flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="text-xl font-medium text-gray-700">Loading graph...</div>
+          <div className="text-xl font-medium text-foreground">Loading graph...</div>
         </div>
       </div>
     );
@@ -351,8 +355,8 @@ export default function GraphView() {
 
   if (error) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <div className="h-full flex items-center justify-center bg-background">
+        <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded">
           {error}
         </div>
       </div>
@@ -360,13 +364,13 @@ export default function GraphView() {
   }
 
   return (
-    <div className="relative" style={{ height: 'calc(100vh - 80px)' }}>
+    <div className="relative bg-background" style={{ height: 'calc(100vh - 80px)' }}>
       {/* Network badge and AI Toggle */}
       <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-2">
         {/* AI Interface Toggle */}
         <button
           onClick={() => setIsAiDrawerOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-blue-500 rounded-lg shadow-lg hover:bg-blue-50 transition-colors text-blue-700 font-bold"
+          className="flex items-center gap-2 px-4 py-2 bg-card border-2 border-primary rounded-lg shadow-lg hover:bg-accent transition-colors text-primary font-bold"
         >
           <Sparkles className="w-4 h-4" />
           <span>AI Interface</span>
@@ -374,12 +378,12 @@ export default function GraphView() {
 
         {/* Network badge */}
         {metadata?.network && (
-          <div className="px-4 py-2 rounded-lg shadow-lg font-medium bg-white border-2 border-blue-500">
-            <span className="text-xs text-gray-500 uppercase mr-2">Network:</span>
+          <div className="px-4 py-2 rounded-lg shadow-lg font-medium bg-card border-2 border-primary">
+            <span className="text-xs text-muted-foreground uppercase mr-2">Network:</span>
             <span className={`font-bold ${
-              metadata.network === 'mainnet' ? 'text-green-600' : 
-              metadata.network === 'testnet' ? 'text-orange-600' : 
-              'text-blue-600'
+              metadata.network === 'mainnet' ? 'text-green-600 dark:text-green-400' : 
+              metadata.network === 'testnet' ? 'text-orange-600 dark:text-orange-400' : 
+              'text-blue-600 dark:text-blue-400'
             }`}>
               {metadata.network}
             </span>
@@ -411,11 +415,12 @@ export default function GraphView() {
         nodesConnectable={false}
         elementsSelectable={true}
       >
-        <Background />
+        <Background color={isDark ? '#333' : '#aaa'} />
         {/* Map Legend */}
       <MapLegend />
         <Controls 
         position='bottom-right'
+        className="bg-card border-border text-foreground"
         />
         {/* <MiniMap /> */}
       </ReactFlow>
