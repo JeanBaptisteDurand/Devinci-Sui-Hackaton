@@ -750,7 +750,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                         Security Flags
                       </div>
                       <div className="space-y-1">
-                        {selectedModule.flags.map((flag, idx) => (
+                        {Array.from(new Set(selectedModule.flags)).map((flag, idx) => (
                           <div key={idx} className="text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200 flex items-center gap-2 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50">
                             <span>⚠️</span>
                             {flag}
