@@ -12,6 +12,12 @@ export default defineConfig({
   server: {
     host: true, // Enable host mode for Docker
     port: 3001,
+    allowedHosts: [
+      'suilens.tech',
+      'www.suilens.tech',
+      'localhost',
+      '.suilens.tech', // Allow all subdomains
+    ],
     watch: {
       usePolling: true, // Enable polling for Docker file watching
     },
