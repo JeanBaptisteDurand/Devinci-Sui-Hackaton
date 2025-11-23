@@ -33,7 +33,7 @@ WORKDIR /app/apps/server
 RUN pnpm prisma generate
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3000
 
 # Set working directory back to app root for pnpm workspace context
 WORKDIR /app

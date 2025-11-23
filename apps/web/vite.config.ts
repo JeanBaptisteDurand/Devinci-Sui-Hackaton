@@ -11,13 +11,14 @@ export default defineConfig({
   },
   server: {
     host: true, // Enable host mode for Docker
-    port: 3000,
+    port: 3001,
     watch: {
       usePolling: true, // Enable polling for Docker file watching
     },
+    // Proxy only used in development - in production, Caddy handles routing
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3001',
+        target: process.env.VITE_API_URL || 'http://localhost:3000',
         changeOrigin: true,
       },
     },

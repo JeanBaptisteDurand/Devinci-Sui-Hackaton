@@ -40,11 +40,11 @@ services:
       - suilens-network
 
   # Backend Server
-  server:
+  backend:
     build:
       context: .
       dockerfile: apps/server/Dockerfile
-    container_name: suilens-server
+    container_name: suilens-backend
     restart: unless-stopped
     environment:
       # Database
@@ -53,8 +53,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       # Server
-      PORT: 3001
-      NODE_ENV: development
+      PORT: 3000
+      NODE_ENV: production
       # JWT Authentication
       JWT_SECRET: dev-secret-change-in-production-please
       JWT_EXPIRES_IN: 365d
@@ -63,16 +63,16 @@ services:
       # OPENAI_API_KEY: your_openai_api_key_here
       # OPENAI_CHAT_MODEL: gpt-4o-mini
       # OPENAI_EMBEDDING_MODEL: text-embedding-3-small
-    ports:
-      - "3001:3001"
+    expose:
+      - "3000"
     volumes:
       # Bind mount source code for hot reload
       - ./apps/server/src:/app/apps/server/src
       - ./apps/server/prisma:/app/apps/server/prisma
       - ./packages:/app/packages
       # Named volumes for node_modules to avoid conflicts with host
-      - server_node_modules:/app/node_modules
-      - server_app_node_modules:/app/apps/server/node_modules
+      - backend_node_modules:/app/node_modules
+      - backend_app_node_modules:/app/apps/server/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -85,18 +85,18 @@ services:
     stdin_open: true
 
   # Frontend Web App
-  web:
+  frontend:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    container_name: suilens-web
+    container_name: suilens-frontend
     restart: unless-stopped
     environment:
-      # Vite configuration
-      VITE_API_URL: http://server:3001
-      NODE_ENV: development
-    ports:
-      - "3000:3000"
+      # Vite configuration - use relative URLs in production (handled by Caddy)
+      VITE_API_URL: 
+      NODE_ENV: production
+    expose:
+      - "3001"
     volumes:
       # Bind mount source code for hot reload
       - ./apps/web/src:/app/apps/web/src
@@ -107,23 +107,44 @@ services:
       - ./apps/web/postcss.config.js:/app/apps/web/postcss.config.js
       - ./packages:/app/packages
       # Named volumes for node_modules to avoid conflicts with host
-      - web_node_modules:/app/node_modules
-      - web_app_node_modules:/app/apps/web/node_modules
+      - frontend_node_modules:/app/node_modules
+      - frontend_app_node_modules:/app/apps/web/node_modules
     depends_on:
-      - server
+      - backend
     networks:
       - suilens-network
     # Enable TTY for better logging
     tty: true
     stdin_open: true
 
+  # Caddy Reverse Proxy
+  caddy:
+    image: caddy:2-alpine
+    container_name: suilens-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - suilens-network
+
 volumes:
   postgres_data:
   redis_data:
-  server_node_modules:
-  server_app_node_modules:
-  web_node_modules:
-  web_app_node_modules:
+  backend_node_modules:
+  backend_app_node_modules:
+  frontend_node_modules:
+  frontend_app_node_modules:
+  caddy_data:
+  caddy_config:
 
 networks:
   suilens-network:

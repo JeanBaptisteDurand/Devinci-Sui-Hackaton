@@ -21,7 +21,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm --filter @suilens/core build
 
 # Expose Vite dev server port
-EXPOSE 3000
+EXPOSE 3001
 
 # Set working directory back to app root for pnpm workspace context
 WORKDIR /app

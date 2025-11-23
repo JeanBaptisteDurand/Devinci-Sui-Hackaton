@@ -1,0 +1,14 @@
+suilens.tech {
+    encode gzip
+
+    # API backend sur /api
+    handle /api/* {
+        reverse_proxy backend:3000
+    }
+
+    # Reste des routes vers le frontend
+    handle {
+        reverse_proxy frontend:3001
+    }
+}
+
