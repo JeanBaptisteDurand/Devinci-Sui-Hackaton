@@ -717,7 +717,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   {/* View Code */}
                   {selectedModule.packageId && (
                     <div>
-                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                         View Code
                       </div>
                       <div className="space-y-2">
@@ -725,7 +725,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                           href={suiscanModuleUrl(selectedModule.packageId, selectedModule.name, network as any)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-blue-600 bg-blue-50 hover:bg-blue-100"
+                          className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
                         >
                           <ExternalLink className="w-4 h-4 flex-shrink-0" />
                           <span className="text-sm">View on SuiScan</span>
@@ -734,7 +734,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                           href={suivisionModuleUrl(selectedModule.packageId, selectedModule.name, network as any)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-green-600 bg-green-50 hover:bg-green-100"
+                          className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 transition-all text-green-600 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30"
                         >
                           <ExternalLink className="w-4 h-4 flex-shrink-0" />
                           <span className="text-sm">View on SuiVision</span>
@@ -746,12 +746,12 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   {/* Security Flags */}
                   {selectedModule.flags && selectedModule.flags.length > 0 && (
                     <div>
-                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                         Security Flags
                       </div>
                       <div className="space-y-1">
                         {selectedModule.flags.map((flag, idx) => (
-                          <div key={idx} className="text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200 flex items-center gap-2">
+                          <div key={idx} className="text-xs font-semibold text-red-700 bg-red-50 p-2 rounded border border-red-200 flex items-center gap-2 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/50">
                             <span>⚠️</span>
                             {flag}
                           </div>
@@ -762,7 +762,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
 
                   {/* Types */}
                   <div>
-                    <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                       Types
                     </div>
                     {selectedModule.types && selectedModule.types.length > 0 ? (
@@ -771,7 +771,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                           <button 
                             key={type}
                             onClick={() => setSelectedType(type)}
-                            className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 text-purple-900 bg-purple-50 hover:bg-purple-100 transition-colors"
+                            className="w-full text-left px-4 py-2 rounded-lg flex items-center gap-3 text-purple-900 bg-purple-50 hover:bg-purple-100 transition-colors dark:bg-purple-900/20 dark:text-purple-300 dark:hover:bg-purple-900/30"
                           >
                             <div className="w-2 h-2 rounded-full bg-purple-500 flex-shrink-0" />
                             <span className="text-sm truncate" title={type}>{type.split('::').pop()}</span>
@@ -779,7 +779,7 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                         ))}
                       </div>
                     ) : (
-                      <div className="px-4 py-3 text-sm text-gray-500 italic">
+                      <div className="px-4 py-3 text-sm text-muted-foreground italic">
                         No types found in this module
                       </div>
                     )}
@@ -788,21 +788,21 @@ export default function AiInterfaceDrawer({ isOpen, onClose, modules = [], depen
                   {/* Functions */}
                   {selectedModule.functions && selectedModule.functions.length > 0 && (
                     <div>
-                      <div className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                         Functions ({selectedModule.functions.length})
                       </div>
                       <div className="space-y-1">
                         {selectedModule.functions.map((func, idx) => (
-                          <div key={idx} className="w-full text-left px-4 py-2 rounded-lg bg-gray-100 border border-gray-200">
+                          <div key={idx} className="w-full text-left px-4 py-2 rounded-lg bg-muted/50 border border-border">
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-mono font-semibold text-gray-800">{func.name}</span>
+                              <span className="text-sm font-mono font-semibold text-foreground">{func.name}</span>
                               {func.isEntry && (
-                                <span className="text-[10px] uppercase bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold">
+                                <span className="text-[10px] uppercase bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-bold dark:bg-blue-900/40 dark:text-blue-300">
                                   Entry
                                 </span>
                               )}
                             </div>
-                            <div className="text-xs text-gray-500 capitalize">
+                            <div className="text-xs text-muted-foreground capitalize">
                               {func.visibility.toLowerCase()}
                             </div>
                           </div>

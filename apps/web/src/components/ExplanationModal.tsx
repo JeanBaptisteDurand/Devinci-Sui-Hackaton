@@ -12,7 +12,7 @@ interface ExplanationModalProps {
 
 const MarkdownComponents = {
   p: ({node, ...props}: any) => <p className="text-sm leading-relaxed break-words mb-2 last:mb-0" {...props} />,
-  a: ({node, ...props}: any) => <a className="underline hover:no-underline break-all" target="_blank" rel="noopener noreferrer" {...props} />,
+  a: ({node, ...props}: any) => <a className="underline hover:no-underline break-all text-primary" target="_blank" rel="noopener noreferrer" {...props} />,
   ul: ({node, ...props}: any) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
   ol: ({node, ...props}: any) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
   li: ({node, ...props}: any) => <li className="text-sm" {...props} />,
@@ -21,19 +21,19 @@ const MarkdownComponents = {
   h3: ({node, ...props}: any) => <h3 className="text-sm font-bold mb-1 mt-2 first:mt-0" {...props} />,
   code: ({node, inline, className, children, ...props}: any) => {
     return inline ? (
-      <code className="bg-black/10 px-1 py-0.5 rounded text-xs font-mono break-all" {...props}>
+      <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono break-all" {...props}>
         {children}
       </code>
     ) : (
-      <pre className="bg-black/10 p-2 rounded-lg overflow-x-auto text-xs font-mono mb-2">
+      <pre className="bg-muted p-2 rounded-lg overflow-x-auto text-xs font-mono mb-2">
         <code {...props}>{children}</code>
       </pre>
     );
   },
-  blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-current pl-4 italic my-2 opacity-80" {...props} />,
-  table: ({node, ...props}: any) => <div className="overflow-x-auto mb-2"><table className="min-w-full divide-y divide-current border-current border opacity-80" {...props} /></div>,
-  th: ({node, ...props}: any) => <th className="px-3 py-2 bg-black/5 text-left text-xs font-medium uppercase tracking-wider border-b border-current opacity-70" {...props} />,
-  td: ({node, ...props}: any) => <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-current opacity-90" {...props} />,
+  blockquote: ({node, ...props}: any) => <blockquote className="border-l-4 border-primary/50 pl-4 italic my-2 opacity-80" {...props} />,
+  table: ({node, ...props}: any) => <div className="overflow-x-auto mb-2"><table className="min-w-full divide-y divide-border border-border border opacity-80" {...props} /></div>,
+  th: ({node, ...props}: any) => <th className="px-3 py-2 bg-muted text-left text-xs font-medium uppercase tracking-wider border-b border-border opacity-70" {...props} />,
+  td: ({node, ...props}: any) => <td className="px-3 py-2 whitespace-nowrap text-sm border-b border-border opacity-90" {...props} />,
 };
 
 export default function ExplanationModal({ type, id, name, onClose, hasModules }: ExplanationModalProps) {
@@ -150,9 +150,9 @@ export default function ExplanationModal({ type, id, name, onClose, hasModules }
               <p className="text-destructive/80 text-sm mt-1">{error}</p>
             </div>
           ) : explanation ? (
-            <div className="prose prose-sm max-w-none">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              <div className="bg-muted/30 border border-border rounded-lg p-6">
+                <div className="whitespace-pre-wrap text-foreground leading-relaxed">
                   <ReactMarkdown components={MarkdownComponents} remarkPlugins={[remarkGfm]}>
                     {explanation}
                   </ReactMarkdown>

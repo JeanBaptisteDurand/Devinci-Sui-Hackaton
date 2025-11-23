@@ -42,7 +42,7 @@ export function Header() {
           </div>
           <div className="flex items-center space-x-4">
             <ModeToggle />
-            <ConnectButton />
+            <ConnectButton className="!bg-primary !text-primary-foreground hover:!bg-primary/90 !font-sans !rounded-md !border-0" />
           </div>
         </div>
       </div>
