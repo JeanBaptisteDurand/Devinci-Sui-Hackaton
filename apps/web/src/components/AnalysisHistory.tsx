@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TIER_NAMES } from '@/config/sui';
+import { suivisionTxUrl } from '@/utils/explorers';
 
 interface AnalysisEvent {
   timestamp: number;
@@ -141,7 +142,7 @@ export function AnalysisHistory() {
                 </div>
                 <div className="flex justify-end">
                   <a
-                    href={`https://suiexplorer.com/txblock/${event.txDigest}?network=testnet`}
+                    href={suivisionTxUrl(event.txDigest, 'testnet')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-primary hover:underline text-xs"

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { suiscanObjectUrl, suiexplorerObjectUrl } from '../utils/explorers';
+import { suiscanObjectUrl, suivisionObjectUrl } from '../utils/explorers';
 
 interface ObjectPanelProps {
   node: any;
@@ -164,12 +164,12 @@ export default function ObjectPanel({ node, analysisId, onClose }: ObjectPanelPr
                 View on SuiScan
               </a>
               <a
-                href={suiexplorerObjectUrl(objectId)}
+                href={suivisionObjectUrl(objectId)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full px-4 py-2 bg-green-500 text-white text-center rounded hover:bg-green-600 transition-colors"
               >
-                View on Sui Explorer
+                View on SuiVision
               </a>
             </div>
           </>

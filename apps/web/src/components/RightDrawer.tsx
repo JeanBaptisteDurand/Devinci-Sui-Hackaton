@@ -10,7 +10,7 @@ import EventPanel from './EventPanel';
 import AddressPanel from './AddressPanel';
 import EventsModal from './EventsModal';
 import ExplanationModal from './ExplanationModal';
-import { suiscanPackageUrl, suiexplorerPackageUrl, suiscanModuleUrl, suiexplorerModuleUrl } from '../utils/explorers';
+import { suiscanPackageUrl, suivisionPackageUrl, suiscanModuleUrl, suivisionModuleUrl } from '../utils/explorers';
 import type { GraphData } from '@suilens/core';
 
 interface RightDrawerProps {
@@ -18,10 +18,11 @@ interface RightDrawerProps {
   edge: FlowEdge | null;
   graphData: GraphData | null;
   analysisId: string;
+  network: 'mainnet' | 'testnet' | 'devnet';
   onClose: () => void;
 }
 
-export default function RightDrawer({ node, edge, graphData, analysisId, onClose }: RightDrawerProps) {
+export default function RightDrawer({ node, edge, graphData, analysisId, network, onClose }: RightDrawerProps) {
   const [selectedFunction, setSelectedFunction] = useState<{
     func: { name: string; visibility: string; isEntry: boolean };
     moduleName: string;
@@ -196,7 +197,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
                 <label className="text-sm font-medium text-muted-foreground mb-2 block">View on Explorers</label>
                 <div className="space-y-2">
                   <a
-                    href={suiscanPackageUrl(nodeData.address)}
+                    href={suiscanPackageUrl(nodeData.address, network as any)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full px-3 py-2 bg-blue-500 text-white text-center text-sm rounded hover:bg-blue-600 transition-colors"
@@ -204,12 +205,12 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
                     View on SuiScan
                   </a>
                   <a
-                    href={suiexplorerPackageUrl(nodeData.address)}
+                    href={suivisionPackageUrl(nodeData.address, network as any)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block w-full px-3 py-2 bg-green-500 text-white text-center text-sm rounded hover:bg-green-600 transition-colors"
                   >
-                    View on Sui Explorer
+                    View on SuiVision
                   </a>
                 </div>
               </div>
@@ -434,7 +435,7 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
                   <label className="text-sm font-medium text-muted-foreground mb-2 block">View Code</label>
                   <div className="space-y-2">
                     <a
-                      href={suiscanModuleUrl(moduleData.package, moduleData.name)}
+                      href={suiscanModuleUrl(moduleData.package, moduleData.name, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block w-full px-3 py-2 bg-blue-500 text-white text-center text-sm rounded hover:bg-blue-600 transition-colors"
@@ -442,12 +443,12 @@ export default function RightDrawer({ node, edge, graphData, analysisId, onClose
                       View on SuiScan
                     </a>
                     <a
-                      href={suiexplorerModuleUrl(moduleData.package, moduleData.name)}
+                      href={suivisionModuleUrl(moduleData.package, moduleData.name, network as any)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block w-full px-3 py-2 bg-green-500 text-white text-center text-sm rounded hover:bg-green-600 transition-colors"
                     >
-                      View on Sui Explorer
+                      View on SuiVision
                     </a>
                   </div>
                 </div>

@@ -5,42 +5,54 @@
 export type Network = 'mainnet' | 'testnet' | 'devnet';
 
 export function suiscanPackageUrl(pkgId: string, network: Network = 'mainnet'): string {
-  const domain = network === 'mainnet' ? 'suiscan.xyz' : `${network}.suiscan.xyz`;
+  if (pkgId.startsWith('pkg:')) {
+    pkgId = pkgId.slice(4);
+  }
+  const domain = network === 'mainnet' ? 'suiscan.xyz' : `suiscan.xyz/${network}`;
   return `https://${domain}/object/${pkgId}`;
 }
 
 export function suiscanModuleUrl(pkgId: string, module: string, network: Network = 'mainnet'): string {
-  const domain = network === 'mainnet' ? 'suiscan.xyz' : `${network}.suiscan.xyz`;
+  if (pkgId.startsWith('pkg:')) {
+    pkgId = pkgId.slice(4);
+  }
+  const domain = network === 'mainnet' ? 'suiscan.xyz' : `suiscan.xyz/${network}`;
   return `https://${domain}/object/${pkgId}/contracts?module=${module}`;
 }
 
-export function suiexplorerPackageUrl(pkgId: string, network: Network = 'mainnet'): string {
-  const networkParam = network === 'mainnet' ? '' : `?network=${network}`;
-  return `https://suiexplorer.com/object/${pkgId}${networkParam}`;
+export function suivisionPackageUrl(pkgId: string, network: Network = 'mainnet'): string {
+    if (pkgId.startsWith('pkg:')) {
+    pkgId = pkgId.slice(4);
+  } 
+  const domain = network === 'mainnet' ? 'suivision.xyz' : `${network}.suivision.xyz`;
+  return `https://${domain}/object/${pkgId}`;
 }
 
-export function suiexplorerModuleUrl(pkgId: string, module: string, network: Network = 'mainnet'): string {
-  const networkParam = network === 'mainnet' ? '' : `?network=${network}`;
-  return `https://suiexplorer.com/object/${pkgId}${networkParam}#${module}`;
+export function suivisionModuleUrl(pkgId: string, module: string, network: Network = 'mainnet'): string {
+    if (pkgId.startsWith('pkg:')) {
+    pkgId = pkgId.slice(4);
+  }
+  const domain = network === 'mainnet' ? 'suivision.xyz' : `${network}.suivision.xyz`;
+  return `https://${domain}/object/${pkgId}#${module}`;
 }
 
 export function suiscanObjectUrl(objectId: string, network: Network = 'mainnet'): string {
-  const domain = network === 'mainnet' ? 'suiscan.xyz' : `${network}.suiscan.xyz`;
+  const domain = network === 'mainnet' ? 'suiscan.xyz' : `suiscan.xyz/${network}`;
   return `https://${domain}/object/${objectId}`;
 }
 
-export function suiexplorerObjectUrl(objectId: string, network: Network = 'mainnet'): string {
-  const networkParam = network === 'mainnet' ? '' : `?network=${network}`;
-  return `https://suiexplorer.com/object/${objectId}${networkParam}`;
+export function suivisionObjectUrl(objectId: string, network: Network = 'mainnet'): string {
+   const domain = network === 'mainnet' ? 'suivision.xyz' : `${network}.suivision.xyz`;
+  return `https://${domain}/object/${objectId}`;
 }
 
 export function suiscanTxUrl(txDigest: string, network: Network = 'mainnet'): string {
-  const domain = network === 'mainnet' ? 'suiscan.xyz' : `${network}.suiscan.xyz`;
+  const domain = network === 'mainnet' ? 'suiscan.xyz' : `suiscan.xyz/${network}`;
   return `https://${domain}/tx/${txDigest}`;
 }
 
-export function suiexplorerTxUrl(txDigest: string, network: Network = 'mainnet'): string {
-  const networkParam = network === 'mainnet' ? '' : `?network=${network}`;
-  return `https://suiexplorer.com/txblock/${txDigest}${networkParam}`;
+export function suivisionTxUrl(txDigest: string, network: Network = 'mainnet'): string {
+  const domain = network === 'mainnet' ? 'suivision.xyz' : `${network}.suivision.xyz`;
+  return `https://${domain}/txblock/${txDigest}`;
 }
 
